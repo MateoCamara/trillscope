@@ -1,0 +1,15 @@
+# Block A: Ingestion + Audit dependencies
+pyarrow>=14.0.0
+pandas>=2.0.0
+chardet>=5.0.0
+dbfread>=2.0.7
+lxml>=4.9.0
+defusedxml>=0.7.1
+soundfile>=0.12.0
+pydub>=0.25.0
+textgrid>=1.5
+tqdm>=4.65.0
+
+# Block F: /r/ Extraction dependencies
+praatio>=6.0.0                    # TextGrid parsing (MFA output)
+montreal-forced-aligner>=2.2.0    # Forced alignment for PRESEEA (optional)
