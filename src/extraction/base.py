@@ -17,7 +17,6 @@ class TrillCandidate:
     # Word context
     word: str
     word_idx: int  # 0-indexed position in utterance
-    r_idx_in_word: int = 0  # Which /r/ in this word (0 if only one)
 
     # Timing (milliseconds)
     start_ms: float
@@ -25,13 +24,12 @@ class TrillCandidate:
 
     # Phonetic context
     phoneme_label: str  # Original label: 'r(', 'rr', 'r'
+
+    # Fields with defaults must come after fields without defaults
+    r_idx_in_word: int = 0  # Which /r/ in this word (0 if only one)
     prev_phoneme: Optional[str] = None
     next_phoneme: Optional[str] = None
-
-    # Classification
     context_label: str = 'unknown'  # 'intervocalic_rr', 'word_initial', 'after_nls'
-
-    # Source info
     alignment_source: str = 'unknown'  # 'phn', 'seo', 'textgrid', 'mfa'
     audio_path: Optional[str] = None
 
