@@ -5,7 +5,7 @@ from typing import List, Optional, Tuple
 import logging
 
 from .base import TrillCandidate, ExtractionResult
-from .context_classifier import classify_phoneme_context
+from .context_classifier import classify_phoneme_context, classify_r_context, is_trill_context
 from ..ingestion.albayzin.seo_parser import SEOParser, SEORecord, PhonemeLabel
 
 logger = logging.getLogger(__name__)
@@ -105,15 +105,29 @@ class AlbayzinExtractor:
                     record.phoneme_labels, trill_label
                 )
 
-                # Classify context
-                context_label = classify_phoneme_context(
-                    prev_phoneme, next_phoneme, trill_label.phoneme
-                )
-
                 # Try to find the word
                 word = self._find_word_for_phoneme(
                     record.orthographic_text, trill_label, record
                 )
+
+                # Classify context based on ORTHOGRAPHIC rules (not just phoneme labels)
+                # ALBAYZIN 'rr' phoneme label includes non-trill contexts like word-final
+                context_label = 'unknown'
+                if word:
+                    # Find where 'r' appears in the word to classify orthographically
+                    ortho_context = self._classify_orthographic_context(word)
+                    if ortho_context:
+                        context_label = ortho_context
+
+                # Fallback to phoneme-based classification
+                if context_label == 'unknown':
+                    context_label = classify_phoneme_context(
+                        prev_phoneme, next_phoneme, trill_label.phoneme
+                    )
+
+                # Skip non-trill contexts (coda, tap_cluster, post_vocalic without rr)
+                if not is_trill_context(context_label):
+                    continue
 
                 candidate = TrillCandidate(
                     utt_id=utt_id,
@@ -215,6 +229,34 @@ class AlbayzinExtractor:
 
         return None
 
+    def _classify_orthographic_context(self, word: str) -> Optional[str]:
+        """
+        Classify /r/ context based on orthographic rules.
+
+        Returns the trill context if the word contains a trill /r/, otherwise None.
+        """
+        if not word:
+            return None
+
+        word_lower = word.lower()
+
+        # Check for orthographic 'rr' (intervocalic double-r) - TRILL
+        if 'rr' in word_lower:
+            return 'intervocalic_rr'
+
+        # Check for word-initial 'r' - TRILL
+        if word_lower.startswith('r'):
+            return 'word_initial'
+
+        # Check for 'r' after n, l, s (at syllable boundary) - TRILL
+        # Patterns like: enr, alr, isr (e.g., enredo, alrededor, Israel)
+        import re
+        if re.search(r'[nls]r', word_lower):
+            return 'after_nls'
+
+        # Other positions (coda, clusters) are NOT trill contexts
+        return None
+
     def _find_word_for_phoneme(self, text: str, label: PhonemeLabel,
                                record: SEORecord) -> Optional[str]:
         """
@@ -229,12 +271,19 @@ class AlbayzinExtractor:
         import re
         words = re.findall(r'\b\w+\b', text, re.UNICODE)
 
-        # Return first word containing 'rr' or 'r' (trill context)
+        # Prioritize words with 'rr' (intervocalic trill)
         for word in words:
-            word_lower = word.lower()
-            if 'rr' in word_lower:
+            if 'rr' in word.lower():
                 return word
-            if word_lower.startswith('r'):
+
+        # Then word-initial 'r'
+        for word in words:
+            if word.lower().startswith('r'):
+                return word
+
+        # Then 'r' after n,l,s
+        for word in words:
+            if re.search(r'[nls]r', word.lower()):
                 return word
 
         # Fallback to any word with 'r'

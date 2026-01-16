@@ -13,3 +13,7 @@ tqdm>=4.65.0
 # Block F: /r/ Extraction dependencies
 praatio>=6.0.0                    # TextGrid parsing (MFA output)
 montreal-forced-aligner>=2.2.0    # Forced alignment for PRESEEA (optional)
+
+# Block D: Visualization dependencies
+matplotlib>=3.7.0                 # Plotting
+scipy>=1.10.0                     # Spectrogram, resampling

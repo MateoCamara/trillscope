@@ -58,12 +58,14 @@ class DIMEx100Extractor:
         """Extract candidates from a single speaker directory."""
 
         # Find all .phn files in T22, T44, T54 subdirectories
+        # Files are in subdirectories like T22/comunes/, T22/individuales/
         for task_dir in ['T22', 'T44', 'T54']:
             task_path = speaker_dir / task_dir
             if not task_path.exists():
                 continue
 
-            phn_files = sorted(task_path.glob('*.phn'))
+            # Use recursive glob to find files in subdirectories
+            phn_files = sorted(task_path.glob('**/*.phn'))
             for phn_path in phn_files:
                 self._extract_from_phn(phn_path, speaker_id, task_dir, result)
 
@@ -132,31 +134,50 @@ class DIMEx100Extractor:
     def _find_audio_file(self, phn_path: Path, speaker_id: str) -> Optional[Path]:
         """Find the audio file corresponding to a .phn file."""
         # audio_editado contains the edited audio files
-        audio_dir = self.corpus_root / speaker_id / 'audio_editado'
-        if audio_dir.exists():
-            # Match by stem (e.g., s00101.phn -> s00101.wav)
-            audio_file = audio_dir / f"{phn_path.stem}.wav"
-            if audio_file.exists():
-                return audio_file
+        # Structure mirrors T22/comunes/, T22/individuales/, etc.
+        audio_base = self.corpus_root / speaker_id / 'audio_editado'
+        if not audio_base.exists():
+            return None
+
+        # Get the subdirectory from phn_path (e.g., 'comunes' or 'individuales')
+        subdir = phn_path.parent.name
+
+        # First try matching subdirectory structure
+        audio_file = audio_base / subdir / f"{phn_path.stem}.wav"
+        if audio_file.exists():
+            return audio_file
+
+        # Fallback: search recursively
+        matches = list(audio_base.glob(f"**/{phn_path.stem}.wav"))
+        if matches:
+            return matches[0]
 
         return None
 
     def _load_transcript(self, phn_path: Path, speaker_id: str) -> Optional[str]:
         """Load transcript text for a .phn file."""
-        # texto/ contains transcripts
-        texto_dir = self.corpus_root / speaker_id / 'texto'
-        if texto_dir.exists():
-            txt_file = texto_dir / f"{phn_path.stem}.txt"
-            if txt_file.exists():
-                try:
-                    # Try different encodings
-                    for enc in ['utf-8', 'latin-1', 'cp1252']:
-                        try:
-                            return txt_file.read_text(encoding=enc).strip()
-                        except UnicodeDecodeError:
-                            continue
-                except Exception:
-                    pass
+        # texto/ contains transcripts, mirroring the T22/comunes/ structure
+        texto_base = self.corpus_root / speaker_id / 'texto'
+
+        # Get subdirectory from phn_path (e.g., 'comunes' or 'individuales')
+        subdir = phn_path.parent.name
+
+        # Try matching subdirectory structure first
+        txt_file = texto_base / subdir / f"{phn_path.stem}.txt"
+        if not txt_file.exists():
+            # Fallback to flat structure
+            txt_file = texto_base / f"{phn_path.stem}.txt"
+
+        if txt_file.exists():
+            try:
+                # Try different encodings
+                for enc in ['utf-8', 'latin-1', 'cp1252']:
+                    try:
+                        return txt_file.read_text(encoding=enc).strip()
+                    except UnicodeDecodeError:
+                        continue
+            except Exception:
+                pass
         return None
 
     def _find_word_at_time(self, transcript: Optional[str],
@@ -165,19 +186,36 @@ class DIMEx100Extractor:
         Find the word containing a given time span.
 
         This is a heuristic approach - proper word alignment would be better.
-        For now, we just return the transcript words that might contain 'r'.
+        Prioritizes words with trill contexts (rr, word-initial r, r after n/l/s).
         """
         if not transcript:
             return None
 
-        # Simple heuristic: find words containing 'r' or 'rr'
+        import re
         words = transcript.split()
+        trill_words = []
+
         for word in words:
             word_clean = ''.join(c for c in word if c.isalpha())
-            if 'r' in word_clean.lower():
-                return word_clean
+            word_lower = word_clean.lower()
 
-        return None
+            # Prioritize by trill context
+            if 'rr' in word_lower:
+                trill_words.append((word_clean, 1))  # intervocalic rr - highest priority
+            elif word_lower.startswith('r'):
+                trill_words.append((word_clean, 2))  # word-initial
+            elif re.search(r'[nls]r', word_lower):
+                trill_words.append((word_clean, 3))  # after n,l,s
+
+        # Return highest priority word, or show transcript excerpt if no trill word found
+        if trill_words:
+            trill_words.sort(key=lambda x: x[1])
+            return trill_words[0][0]
+
+        # No trill word found - return first part of transcript as context
+        if len(transcript) > 30:
+            return transcript[:30] + '...'
+        return transcript
 
     def extract_utterance(self, phn_path: Path, speaker_id: str) -> List[TrillCandidate]:
         """
