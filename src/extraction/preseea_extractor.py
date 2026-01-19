@@ -101,12 +101,22 @@ class PreseeaExtractor:
 
                 # Parse XML transcript
                 parsed = self.xml_parser.parse(txt_path)
-                if not parsed or not parsed.transcript_text:
+                if not parsed:
+                    continue
+
+                # Parser returns (metadata, utterances) tuple
+                metadata, utterances = parsed
+                if not utterances:
+                    continue
+
+                # Combine all utterance texts
+                transcript_text = ' '.join(u.text for u in utterances if u.text)
+                if not transcript_text:
                     continue
 
                 # Prepare for MFA
                 file_id = mp3_path.stem
-                self.mfa_runner.prepare_file(mp3_path, parsed.transcript_text, file_id)
+                self.mfa_runner.prepare_file(mp3_path, transcript_text, file_id)
 
             except Exception as e:
                 result.add_issue(f"Failed to prepare {mp3_path.stem}: {e}")
@@ -227,7 +237,17 @@ class PreseeaExtractor:
 
             # Parse XML transcript
             parsed = self.xml_parser.parse(txt_path)
-            if not parsed or not parsed.transcript_text:
+            if not parsed:
+                return
+
+            # Parser returns (metadata, utterances) tuple
+            metadata, utterances = parsed
+            if not utterances:
+                return
+
+            # Combine all utterance texts
+            transcript_text = ' '.join(u.text for u in utterances if u.text)
+            if not transcript_text:
                 return
 
             file_id = mp3_path.stem
@@ -235,7 +255,7 @@ class PreseeaExtractor:
             utt_id = f"PRE_{file_id}"
 
             # Find words with trill contexts
-            words = re.findall(r'\b\w+\b', parsed.transcript_text, re.UNICODE)
+            words = re.findall(r'\b\w+\b', transcript_text, re.UNICODE)
 
             for word_idx, word in enumerate(words):
                 word_clean = ''.join(c for c in word if c.isalpha())
