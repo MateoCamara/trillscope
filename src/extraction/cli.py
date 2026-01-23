@@ -90,12 +90,22 @@ def extract_albayzin(dataset_root: Path, output_dir: Path) -> None:
 
 
 def extract_preseea(dataset_root: Path, output_dir: Path,
-                   use_mfa: bool = True, run_mfa: bool = True) -> None:
+                   use_mfa: bool = True, run_mfa: bool = True,
+                   mfa_work_dir: Path = None) -> None:
     """Extract trill /r/ candidates from PRESEEA."""
     logger.info(f"Extracting from PRESEEA at {dataset_root}")
 
     # Create work directory for MFA
-    work_dir = output_dir / 'mfa_work' / 'preseea' if use_mfa else None
+    # Default to mfa_preseea for existing outputs, mfa_work/preseea for new runs
+    if mfa_work_dir:
+        work_dir = mfa_work_dir
+    elif use_mfa and not run_mfa:
+        # Using existing outputs - look in mfa_preseea
+        work_dir = output_dir / 'mfa_preseea'
+    elif use_mfa:
+        work_dir = output_dir / 'mfa_work' / 'preseea'
+    else:
+        work_dir = None
 
     extractor = PreseeaExtractor(dataset_root, work_dir=work_dir, use_mfa=use_mfa)
 

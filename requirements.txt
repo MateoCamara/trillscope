@@ -17,3 +17,10 @@ montreal-forced-aligner>=2.2.0    # Forced alignment for PRESEEA (optional)
 # Block D: Visualization dependencies
 matplotlib>=3.7.0                 # Plotting
 scipy>=1.10.0                     # Spectrogram, resampling
+
+# Block G: Acoustic Measurement dependencies
+praat-parselmouth>=0.4.0          # Praat algorithms (pitch, HNR, intensity)
+
+# Block H: Statistical Analysis dependencies
+seaborn>=0.12.0                   # Statistical visualizations
+scikit-posthocs>=0.8.0            # Post-hoc tests (optional, has fallback)

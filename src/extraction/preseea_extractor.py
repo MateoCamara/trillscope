@@ -124,67 +124,99 @@ class PreseeaExtractor:
     def _extract_from_mfa_outputs(self, mp3_files: List[Path],
                                    result: ExtractionResult) -> None:
         """Extract candidates from MFA output TextGrids."""
+        # MFA was run on segmented audio, so TextGrid files are named like
+        # ALCA_H12_019_seg019.TextGrid, not ALCA_H12_019.TextGrid
+        # Find all TextGrid files and group by base file ID
+
+        # First, get all available TextGrid files
+        textgrid_files = list(self.mfa_runner.output_dir.glob('*.TextGrid'))
+        if not textgrid_files:
+            logger.warning("No TextGrid files found in MFA output directory")
+            self._extract_orthographic_only(mp3_files, result)
+            return
+
+        logger.info(f"Found {len(textgrid_files)} TextGrid files")
+
+        # Group TextGrids by base MP3 file
+        mp3_to_textgrids = {}
+        for tg_path in textgrid_files:
+            # Extract base file ID: ALCA_H12_019_seg019 -> ALCA_H12_019
+            tg_name = tg_path.stem
+            if '_seg' in tg_name:
+                base_id = tg_name.rsplit('_seg', 1)[0]
+            else:
+                base_id = tg_name
+
+            if base_id not in mp3_to_textgrids:
+                mp3_to_textgrids[base_id] = []
+            mp3_to_textgrids[base_id].append(tg_path)
+
+        logger.info(f"TextGrids grouped for {len(mp3_to_textgrids)} base files")
+
         for mp3_path in mp3_files:
             file_id = mp3_path.stem
 
-            # Get TextGrid output
-            textgrid_path = self.mfa_runner.get_output_textgrid(file_id)
-            if not textgrid_path:
+            # Find all TextGrid segments for this MP3
+            textgrid_paths = mp3_to_textgrids.get(file_id, [])
+
+            if not textgrid_paths:
                 # No alignment, try orthographic extraction
                 self._extract_orthographic_file(mp3_path, result)
                 continue
 
-            # Parse TextGrid
-            words, phonemes = self.mfa_runner.parse_textgrid(textgrid_path)
-            if not phonemes:
-                continue
-
-            # Get speaker info from transcript
-            txt_path = mp3_path.with_suffix('.txt')
+            # Get speaker info
             speaker_id = file_id.split('_')[0] if '_' in file_id else file_id[:4]
 
-            utt_id = f"PRE_{file_id}"
+            # Process each segment's TextGrid
+            for textgrid_path in textgrid_paths:
+                segment_id = textgrid_path.stem
+                utt_id = f"PRE_{segment_id}"
 
-            # Find trills
-            trill_indices = self.mfa_runner.find_trills(phonemes)
+                # Parse TextGrid
+                words, phonemes = self.mfa_runner.parse_textgrid(textgrid_path)
+                if not phonemes:
+                    continue
 
-            for idx, phoneme in trill_indices:
-                # Get context
-                prev_phoneme = phonemes[idx - 1].label if idx > 0 else None
-                next_phoneme = phonemes[idx + 1].label if idx + 1 < len(phonemes) else None
+                # Find trills
+                trill_indices = self.mfa_runner.find_trills(phonemes)
 
-                # Find word
-                word = self.mfa_runner.find_word_for_phoneme(words, phoneme)
+                for idx, phoneme in trill_indices:
+                    # Get context
+                    prev_phoneme = phonemes[idx - 1].label if idx > 0 else None
+                    next_phoneme = phonemes[idx + 1].label if idx + 1 < len(phonemes) else None
 
-                # Classify context
-                context_label = classify_phoneme_context(
-                    prev_phoneme, next_phoneme, phoneme.label
-                )
+                    # Find word
+                    word = self.mfa_runner.find_word_for_phoneme(words, phoneme)
 
-                # Additional check: is this actually a trill context?
-                if word:
-                    word_context = self._check_word_trill_context(word, phoneme)
-                    if not word_context:
-                        continue  # Skip if word analysis suggests tap
+                    # Classify context
+                    context_label = classify_phoneme_context(
+                        prev_phoneme, next_phoneme, phoneme.label
+                    )
 
-                candidate = TrillCandidate(
-                    utt_id=utt_id,
-                    speaker_id=speaker_id,
-                    dataset=self.DATASET,
-                    word=word or '[unknown]',
-                    word_idx=idx,
-                    r_idx_in_word=0,
-                    start_ms=phoneme.start_ms,
-                    end_ms=phoneme.end_ms,
-                    phoneme_label=phoneme.label,
-                    prev_phoneme=prev_phoneme,
-                    next_phoneme=next_phoneme,
-                    context_label=context_label,
-                    alignment_source='mfa',
-                    audio_path=str(mp3_path),
-                )
+                    # Additional check: is this actually a trill context?
+                    if word:
+                        word_context = self._check_word_trill_context(word, phoneme)
+                        if not word_context:
+                            continue  # Skip if word analysis suggests tap
 
-                result.add_candidate(candidate)
+                    candidate = TrillCandidate(
+                        utt_id=utt_id,
+                        speaker_id=speaker_id,
+                        dataset=self.DATASET,
+                        word=word or '[unknown]',
+                        word_idx=idx,
+                        r_idx_in_word=0,
+                        start_ms=phoneme.start_ms,
+                        end_ms=phoneme.end_ms,
+                        phoneme_label=phoneme.label,
+                        prev_phoneme=prev_phoneme,
+                        next_phoneme=next_phoneme,
+                        context_label=context_label,
+                        alignment_source='mfa',
+                        audio_path=str(mp3_path),
+                    )
+
+                    result.add_candidate(candidate)
 
     def _check_word_trill_context(self, word: str, phoneme: MFAPhoneme) -> bool:
         """
