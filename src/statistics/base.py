@@ -17,7 +17,7 @@ class AnalysisConfig:
 
     # Grouping variables (predictors)
     predictor_variables: List[str] = field(default_factory=lambda: [
-        'sex', 'age_bin', 'education_bin', 'country', 'context_label'
+        'sex', 'age_bin', 'education_bin', 'country', 'region', 'context_label'
     ])
 
     # Statistical thresholds
@@ -83,6 +83,9 @@ class AnalysisResult:
     config: AnalysisConfig
     descriptive_stats: pd.DataFrame = field(default_factory=pd.DataFrame)
     test_results: List[TestResult] = field(default_factory=list)
+
+    # Mixed-effects results (A2 ablation)
+    mixed_effects_results: List[Dict[str, Any]] = field(default_factory=list)
 
     figures: List[str] = field(default_factory=list)  # Paths to generated figures
     issues: List[str] = field(default_factory=list)

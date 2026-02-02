@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from .base import AnalysisConfig, AnalysisResult
-from .data_loader import load_analysis_data
+from .data_loader import load_analysis_data, _aggregate_by_speaker
 from .descriptive import compute_all_descriptive_stats, get_group_counts
 from .inferential import run_all_tests
 from .visualization import create_all_visualizations
@@ -26,7 +26,13 @@ def run_analysis(
     reports_dir: Path,
     config: AnalysisConfig,
     datasets: list = None,
-    skip_viz: bool = False
+    skip_viz: bool = False,
+    min_cycles: int = 0,
+    min_duration: float = 0.0,
+    max_cycles: int = 0,
+    exclude_overlap: bool = False,
+    run_mixed_effects: bool = False,
+    exclude_f0_for_dimex: bool = True
 ) -> AnalysisResult:
     """
     Run complete statistical analysis.
@@ -39,6 +45,12 @@ def run_analysis(
         config: Analysis configuration
         datasets: List of datasets to include
         skip_viz: Skip visualization generation
+        min_cycles: Minimum cycle count filter (A3 ablation)
+        min_duration: Minimum duration filter in ms (A3 ablation)
+        max_cycles: Maximum cycle count filter (outlier removal)
+        exclude_overlap: Exclude PRESEEA tokens with overlap markers
+        run_mixed_effects: Run mixed-effects models (A2 ablation)
+        exclude_f0_for_dimex: Exclude F0 from DIMEx100 sex analysis
 
     Returns:
         AnalysisResult object
@@ -52,39 +64,85 @@ def run_analysis(
             measurements_dir,
             metadata_path,
             datasets=datasets,
-            aggregate_by_speaker=True
+            aggregate_by_speaker=False  # Get token-level data first for filtering
         )
     except FileNotFoundError as e:
         logger.error(f"Data not found: {e}")
         result.add_issue(str(e))
         return result
 
-    logger.info(f"Loaded {len(df)} records for analysis")
+    initial_count = len(df)
+    logger.info(f"Loaded {initial_count} records")
 
-    # 2. Compute descriptive statistics
+    # 2. Apply filters (A3 filter sensitivity)
+    if min_cycles > 0:
+        df = df[df['num_cycles'] >= min_cycles]
+        logger.info(f"After min_cycles={min_cycles} filter: {len(df)} records")
+
+    if min_duration > 0:
+        df = df[df['duration_ms'] >= min_duration]
+        logger.info(f"After min_duration={min_duration}ms filter: {len(df)} records")
+
+    if max_cycles > 0:
+        df = df[df['num_cycles'] <= max_cycles]
+        logger.info(f"After max_cycles={max_cycles} filter: {len(df)} records")
+
+    if exclude_overlap and 'has_overlap' in df.columns:
+        df = df[~df['has_overlap']]
+        logger.info(f"After excluding overlap: {len(df)} records")
+
+    # Track filter statistics
+    data_stats['filters_applied'] = {
+        'min_cycles': min_cycles,
+        'min_duration': min_duration,
+        'max_cycles': max_cycles,
+        'exclude_overlap': exclude_overlap,
+        'initial_count': initial_count,
+        'filtered_count': len(df),
+        'removed_count': initial_count - len(df)
+    }
+
+    # 3. Aggregate by speaker for traditional analysis
+    df_aggregated = _aggregate_by_speaker(df)
+    logger.info(f"Aggregated to {len(df_aggregated)} speakers")
+
+    # 4. Compute descriptive statistics
     logger.info("Computing descriptive statistics...")
     result.descriptive_stats = compute_all_descriptive_stats(
-        df,
+        df_aggregated,
         config.outcome_variables,
         config.predictor_variables
     )
 
     # Log group counts
-    group_counts = get_group_counts(df, config.predictor_variables)
+    group_counts = get_group_counts(df_aggregated, config.predictor_variables)
     if len(group_counts) > 0:
         logger.info("Group counts:")
         for _, row in group_counts.iterrows():
             logger.info(f"  {row['variable']}: {row['level']} = {row['n']} ({row['percentage']:.1f}%)")
 
-    # 3. Run inferential tests
+    # 5. Run inferential tests
     logger.info("Running statistical tests...")
     result.test_results = run_all_tests(
-        df,
+        df_aggregated,
         config.outcome_variables,
         config.predictor_variables,
         config
     )
     logger.info(f"Completed {len(result.test_results)} tests")
+
+    # 6. Run mixed-effects models if requested (A2 ablation)
+    if run_mixed_effects:
+        logger.info("Running mixed-effects models...")
+        from .inferential import run_mixed_effects_tests
+        mixed_results = run_mixed_effects_tests(
+            df,  # Use token-level data, not aggregated
+            config.outcome_variables,
+            config.predictor_variables,
+            config
+        )
+        result.mixed_effects_results = mixed_results
+        logger.info(f"Completed {len(mixed_results)} mixed-effects tests")
 
     # 4. Generate visualizations
     if not skip_viz:
@@ -128,13 +186,13 @@ def main():
         'factors',
         nargs='?',
         default='all',
-        choices=['all', 'sex', 'age', 'education', 'country'],
-        help='Factors to analyze'
+        choices=['all', 'sex', 'age', 'education', 'country', 'region', 'context'],
+        help='Factors to analyze (geographic includes country and region)'
     )
     analyze_parser.add_argument(
         '--datasets',
         nargs='+',
-        default=['albayzin', 'dimex100', 'preseea'],
+        default=['albayzin', 'dimex100', 'preseea', 'glissando'],
         help='Datasets to include'
     )
     analyze_parser.add_argument(
@@ -184,6 +242,46 @@ def main():
         action='store_true',
         help='Skip visualization generation'
     )
+    # Ablation study arguments
+    analyze_parser.add_argument(
+        '--corpus',
+        choices=['albayzin', 'preseea', 'dimex100'],
+        help='Analyze only a single corpus (for within-corpus ablation A1)'
+    )
+    analyze_parser.add_argument(
+        '--min-cycles',
+        type=int,
+        default=0,
+        help='Minimum number of cycles to include (for filter sensitivity A3)'
+    )
+    analyze_parser.add_argument(
+        '--min-duration',
+        type=float,
+        default=0.0,
+        help='Minimum duration in ms to include (for filter sensitivity A3)'
+    )
+    analyze_parser.add_argument(
+        '--max-cycles',
+        type=int,
+        default=0,
+        help='Maximum number of cycles to include (0 = no max, for outlier removal)'
+    )
+    analyze_parser.add_argument(
+        '--exclude-overlap',
+        action='store_true',
+        help='Exclude PRESEEA tokens with overlap markers'
+    )
+    analyze_parser.add_argument(
+        '--mixed-effects',
+        action='store_true',
+        help='Run mixed-effects models (A2 ablation)'
+    )
+    analyze_parser.add_argument(
+        '--exclude-f0-for-dimex',
+        action='store_true',
+        default=True,
+        help='Exclude F0 from DIMEx100 sex analysis (due to circularity)'
+    )
 
     # Report command (just generate report from existing results)
     report_parser = subparsers.add_parser('report', help='Generate report from existing analysis')
@@ -208,7 +306,7 @@ def main():
     if args.command == 'analyze':
         # Configure predictors based on factors
         if args.factors == 'all':
-            predictor_vars = ['sex', 'age_bin', 'education_bin', 'country', 'context_label']
+            predictor_vars = ['sex', 'age_bin', 'education_bin', 'country', 'region', 'context_label']
         elif args.factors == 'sex':
             predictor_vars = ['sex']
         elif args.factors == 'age':
@@ -217,6 +315,10 @@ def main():
             predictor_vars = ['education_bin']
         elif args.factors == 'country':
             predictor_vars = ['country']
+        elif args.factors == 'region':
+            predictor_vars = ['region']
+        elif args.factors == 'context':
+            predictor_vars = ['context_label']
         else:
             predictor_vars = ['sex', 'age_bin', 'education_bin']
 
@@ -227,14 +329,27 @@ def main():
             correction_method=args.correction if args.correction != 'none' else None,
         )
 
+        # Handle --corpus shortcut (single corpus = that corpus only)
+        if args.corpus:
+            datasets = [args.corpus]
+            logger.info(f"Running within-corpus analysis for: {args.corpus}")
+        else:
+            datasets = args.datasets
+
         result = run_analysis(
             args.measurements_dir,
             args.metadata_path,
             args.output_dir,
             args.reports_dir,
             config,
-            datasets=args.datasets,
-            skip_viz=args.skip_viz
+            datasets=datasets,
+            skip_viz=args.skip_viz,
+            min_cycles=args.min_cycles,
+            min_duration=args.min_duration,
+            max_cycles=args.max_cycles,
+            exclude_overlap=args.exclude_overlap,
+            run_mixed_effects=args.mixed_effects,
+            exclude_f0_for_dimex=args.exclude_f0_for_dimex
         )
 
         # Print summary

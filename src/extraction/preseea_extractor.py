@@ -25,7 +25,8 @@ class PreseeaExtractor:
     DATASET = 'preseea'
 
     def __init__(self, corpus_root: Path, work_dir: Optional[Path] = None,
-                 use_mfa: bool = True):
+                 use_mfa: bool = True, exclude_overlap: bool = False,
+                 mfa_output_dir: Optional[Path] = None):
         """
         Initialize extractor.
 
@@ -33,15 +34,20 @@ class PreseeaExtractor:
             corpus_root: Path to PRESEEA corpus directory
             work_dir: Working directory for MFA (default: temp)
             use_mfa: Whether to run MFA alignment (False = orthographic only)
+            exclude_overlap: If True, skip utterances with speaker overlap markers
+            mfa_output_dir: Path to existing MFA TextGrid outputs (optional)
         """
         self.corpus_root = corpus_root
         self.use_mfa = use_mfa
+        self.exclude_overlap = exclude_overlap
         self.xml_parser = PreseeaXMLParser()
+        self.mfa_output_dir = mfa_output_dir  # For using existing MFA outputs
 
-        if use_mfa:
-            self.mfa_runner = MFARunner(work_dir)
-        else:
-            self.mfa_runner = None
+        # Track overlap status per file (file_id -> has_overlap)
+        self._file_overlap_status: dict = {}
+
+        # Always create MFARunner for TextGrid parsing utilities
+        self.mfa_runner = MFARunner(work_dir)
 
     def extract_all(self, run_mfa: bool = True) -> ExtractionResult:
         """
@@ -109,13 +115,22 @@ class PreseeaExtractor:
                 if not utterances:
                     continue
 
+                # Check for overlap markers in any utterance
+                file_id = mp3_path.stem
+                has_overlap = any(u.has_overlap for u in utterances)
+                self._file_overlap_status[file_id] = has_overlap
+
+                # Skip files with overlap if exclude_overlap is enabled
+                if self.exclude_overlap and has_overlap:
+                    result.add_issue(f"Skipped {file_id}: contains speaker overlap markers")
+                    continue
+
                 # Combine all utterance texts
                 transcript_text = ' '.join(u.text for u in utterances if u.text)
                 if not transcript_text:
                     continue
 
                 # Prepare for MFA
-                file_id = mp3_path.stem
                 self.mfa_runner.prepare_file(mp3_path, transcript_text, file_id)
 
             except Exception as e:
@@ -128,14 +143,30 @@ class PreseeaExtractor:
         # ALCA_H12_019_seg019.TextGrid, not ALCA_H12_019.TextGrid
         # Find all TextGrid files and group by base file ID
 
+        # Use provided MFA output directory or runner's output directory
+        if self.mfa_output_dir and self.mfa_output_dir.exists():
+            textgrid_dir = self.mfa_output_dir
+        elif self.mfa_runner:
+            textgrid_dir = self.mfa_runner.output_dir
+        else:
+            logger.error("No MFA output directory available")
+            self._extract_orthographic_only(mp3_files, result)
+            return
+
         # First, get all available TextGrid files
-        textgrid_files = list(self.mfa_runner.output_dir.glob('*.TextGrid'))
+        textgrid_files = list(textgrid_dir.glob('*.TextGrid'))
         if not textgrid_files:
             logger.warning("No TextGrid files found in MFA output directory")
             self._extract_orthographic_only(mp3_files, result)
             return
 
         logger.info(f"Found {len(textgrid_files)} TextGrid files")
+
+        # If overlap status not already loaded (e.g., when using --skip-mfa-run),
+        # scan transcripts to get overlap information
+        if not self._file_overlap_status:
+            logger.info("Scanning transcripts for overlap markers...")
+            self._scan_overlap_status(mp3_files, result)
 
         # Group TextGrids by base MP3 file
         mp3_to_textgrids = {}
@@ -162,6 +193,13 @@ class PreseeaExtractor:
             if not textgrid_paths:
                 # No alignment, try orthographic extraction
                 self._extract_orthographic_file(mp3_path, result)
+                continue
+
+            # Get overlap status for this file
+            has_overlap = self._file_overlap_status.get(file_id, False)
+
+            # Skip if exclude_overlap is enabled and file has overlap
+            if self.exclude_overlap and has_overlap:
                 continue
 
             # Get speaker info
@@ -214,9 +252,39 @@ class PreseeaExtractor:
                         context_label=context_label,
                         alignment_source='mfa',
                         audio_path=str(mp3_path),
+                        has_overlap=has_overlap,
                     )
 
                     result.add_candidate(candidate)
+
+    def _scan_overlap_status(self, mp3_files: List[Path],
+                              result: ExtractionResult) -> None:
+        """Scan transcripts to detect overlap markers."""
+        overlap_count = 0
+        for mp3_path in mp3_files:
+            try:
+                txt_path = mp3_path.with_suffix('.txt')
+                if not txt_path.exists():
+                    continue
+
+                parsed = self.xml_parser.parse(txt_path)
+                if not parsed:
+                    continue
+
+                metadata, utterances = parsed
+                if not utterances:
+                    continue
+
+                file_id = mp3_path.stem
+                has_overlap = any(u.has_overlap for u in utterances)
+                self._file_overlap_status[file_id] = has_overlap
+                if has_overlap:
+                    overlap_count += 1
+
+            except Exception as e:
+                result.add_issue(f"Failed to scan overlap for {mp3_path.stem}: {e}")
+
+        logger.info(f"Overlap scan complete: {overlap_count}/{len(mp3_files)} files have overlap markers")
 
     def _check_word_trill_context(self, word: str, phoneme: MFAPhoneme) -> bool:
         """
@@ -230,6 +298,10 @@ class PreseeaExtractor:
             True if likely trill, False if likely tap
         """
         word_lower = word.lower()
+
+        # Skip words without 'r'
+        if 'r' not in word_lower:
+            return False
 
         # Check for 'rr' - always trill
         if 'rr' in word_lower:
@@ -245,12 +317,27 @@ class PreseeaExtractor:
                 return True
 
         # Check for tap clusters - not trill
-        for cluster in ['br', 'cr', 'dr', 'fr', 'gr', 'pr', 'tr']:
+        for cluster in ['br', 'cr', 'dr', 'fr', 'gr', 'pr', 'tr', 'kr']:
             if cluster in word_lower:
                 return False
 
-        # Default: could be either, include for analysis
-        return True
+        # Check for intervocalic single 'r' - tap, not trill
+        # Find position of 'r' and check surrounding characters
+        import re
+        vowels = 'aeiouáéíóú'
+        for match in re.finditer(r'r', word_lower):
+            pos = match.start()
+            prev_char = word_lower[pos - 1] if pos > 0 else ''
+            next_char = word_lower[pos + 1] if pos + 1 < len(word_lower) else ''
+            # Intervocalic single r (not rr) is a tap
+            if prev_char in vowels and next_char in vowels:
+                return False
+            # Coda r (r before consonant or word-final) is variable, exclude
+            if prev_char in vowels and next_char not in vowels:
+                return False
+
+        # Default: exclude if no trill pattern matched
+        return False
 
     def _extract_orthographic_only(self, mp3_files: List[Path],
                                    result: ExtractionResult) -> None:
@@ -277,12 +364,21 @@ class PreseeaExtractor:
             if not utterances:
                 return
 
+            # Check for overlap markers
+            file_id = mp3_path.stem
+            has_overlap = any(u.has_overlap for u in utterances)
+            self._file_overlap_status[file_id] = has_overlap
+
+            # Skip if exclude_overlap is enabled and file has overlap
+            if self.exclude_overlap and has_overlap:
+                result.add_issue(f"Skipped {file_id}: contains speaker overlap markers")
+                return
+
             # Combine all utterance texts
             transcript_text = ' '.join(u.text for u in utterances if u.text)
             if not transcript_text:
                 return
 
-            file_id = mp3_path.stem
             speaker_id = file_id.split('_')[0] if '_' in file_id else file_id[:4]
             utt_id = f"PRE_{file_id}"
 
@@ -314,6 +410,7 @@ class PreseeaExtractor:
                         context_label='intervocalic_rr',
                         alignment_source='orthographic',
                         audio_path=str(mp3_path),
+                        has_overlap=has_overlap,
                     )
                     result.add_candidate(candidate)
 
@@ -334,6 +431,7 @@ class PreseeaExtractor:
                         context_label='word_initial',
                         alignment_source='orthographic',
                         audio_path=str(mp3_path),
+                        has_overlap=has_overlap,
                     )
                     result.add_candidate(candidate)
 
@@ -356,6 +454,7 @@ class PreseeaExtractor:
                                 context_label='after_nls',
                                 alignment_source='orthographic',
                                 audio_path=str(mp3_path),
+                                has_overlap=has_overlap,
                             )
                             result.add_candidate(candidate)
                             break

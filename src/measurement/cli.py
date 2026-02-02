@@ -10,7 +10,14 @@ from .base import MeasurementConfig, MeasurementResult
 from .processors.dimex100_processor import DIMEx100Processor
 from .processors.albayzin_processor import AlbayzinProcessor
 from .processors.preseea_processor import PreseeaProcessor
+from .processors.glissando_processor import GlissandoProcessor
+from .processors.mfa_processor import MFAProcessor
 from .utils.report_generator import MeasurementReportGenerator
+
+# Supported datasets
+ORIGINAL_DATASETS = ['dimex100', 'albayzin', 'preseea', 'glissando']
+MFA_DATASETS = ['mailabs', 'tedx', 'heroico', 'commonvoice']
+ALL_DATASETS = ORIGINAL_DATASETS + MFA_DATASETS
 
 # Configure logging
 logging.basicConfig(
@@ -45,6 +52,10 @@ def measure_dataset(
         processor = AlbayzinProcessor(candidates_path, config)
     elif dataset == 'preseea':
         processor = PreseeaProcessor(candidates_path, config)
+    elif dataset == 'glissando':
+        processor = GlissandoProcessor(candidates_path, config)
+    elif dataset in MFA_DATASETS:
+        processor = MFAProcessor(candidates_path, config, dataset_name=dataset)
     else:
         logger.error(f"Unknown dataset: {dataset}")
         return None
@@ -125,7 +136,7 @@ Output files:
     measure_parser = subparsers.add_parser('measure', help='Run acoustic measurement')
     measure_parser.add_argument(
         'dataset',
-        choices=['dimex100', 'albayzin', 'preseea', 'all'],
+        choices=ALL_DATASETS + ['all'],
         help='Dataset to process'
     )
     measure_parser.add_argument(
@@ -206,7 +217,7 @@ Output files:
 
         # Determine which datasets to process
         if args.dataset == 'all':
-            datasets = ['dimex100', 'albayzin', 'preseea']
+            datasets = ALL_DATASETS
         else:
             datasets = [args.dataset]
 

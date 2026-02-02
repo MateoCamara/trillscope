@@ -32,6 +32,7 @@ class TrillCandidate:
     context_label: str = 'unknown'  # 'intervocalic_rr', 'word_initial', 'after_nls'
     alignment_source: str = 'unknown'  # 'phn', 'seo', 'textgrid', 'mfa'
     audio_path: Optional[str] = None
+    has_overlap: bool = False  # True if utterance contains speaker overlap markers
 
     @property
     def duration_ms(self) -> float:
@@ -56,6 +57,7 @@ class TrillCandidate:
             'context_label': self.context_label,
             'alignment_source': self.alignment_source,
             'audio_path': self.audio_path,
+            'has_overlap': self.has_overlap,
         }
 
 
@@ -95,6 +97,11 @@ class ExtractionResult:
         utterances = set(c.utt_id for c in self.candidates)
         self.statistics['unique_speakers'] = len(speakers)
         self.statistics['unique_utterances'] = len(utterances)
+
+        # Overlap statistics
+        overlap_count = sum(1 for c in self.candidates if c.has_overlap)
+        self.statistics['candidates_with_overlap'] = overlap_count
+        self.statistics['candidates_without_overlap'] = len(self.candidates) - overlap_count
 
         # Duration stats
         if self.candidates:

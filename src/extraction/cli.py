@@ -11,6 +11,7 @@ from .base import ExtractionResult
 from .dimex100_extractor import DIMEx100Extractor
 from .albayzin_extractor import AlbayzinExtractor
 from .preseea_extractor import PreseeaExtractor
+from .glissando_extractor import GlissandoExtractor
 
 # Configure logging
 logging.basicConfig(
@@ -89,25 +90,55 @@ def extract_albayzin(dataset_root: Path, output_dir: Path) -> None:
     save_result(result, output_path)
 
 
+def extract_glissando(dataset_root: Path, output_dir: Path) -> None:
+    """Extract trill /r/ candidates from Glissando-sp."""
+    logger.info(f"Extracting from Glissando-sp at {dataset_root}")
+
+    extractor = GlissandoExtractor(dataset_root)
+    result = extractor.extract_all()
+
+    # Log summary
+    logger.info(f"Glissando-sp extraction complete:")
+    logger.info(f"  - Candidates: {result.statistics.get('total_candidates', 0):,}")
+    logger.info(f"  - Speakers: {result.statistics.get('unique_speakers', 0):,}")
+    logger.info(f"  - Utterances: {result.statistics.get('unique_utterances', 0):,}")
+    logger.info(f"  - Issues: {result.statistics.get('total_issues', 0)}")
+
+    if result.statistics.get('by_context'):
+        logger.info("  - By context:")
+        for ctx, count in sorted(result.statistics['by_context'].items()):
+            logger.info(f"      {ctx}: {count:,}")
+
+    # Save
+    output_path = output_dir / 'outputs' / 'tables' / 'r_candidates_glissando.parquet'
+    save_result(result, output_path)
+
+
 def extract_preseea(dataset_root: Path, output_dir: Path,
                    use_mfa: bool = True, run_mfa: bool = True,
-                   mfa_work_dir: Path = None) -> None:
+                   mfa_work_dir: Path = None, exclude_overlap: bool = False) -> None:
     """Extract trill /r/ candidates from PRESEEA."""
     logger.info(f"Extracting from PRESEEA at {dataset_root}")
+    if exclude_overlap:
+        logger.info("Excluding utterances with speaker overlap markers")
 
     # Create work directory for MFA
     # Default to mfa_preseea for existing outputs, mfa_work/preseea for new runs
+    mfa_output_dir = None
     if mfa_work_dir:
         work_dir = mfa_work_dir
     elif use_mfa and not run_mfa:
-        # Using existing outputs - look in mfa_preseea
+        # Using existing outputs - look in mfa_preseea/output
         work_dir = output_dir / 'mfa_preseea'
+        mfa_output_dir = output_dir / 'mfa_preseea' / 'output'
     elif use_mfa:
         work_dir = output_dir / 'mfa_work' / 'preseea'
     else:
         work_dir = None
 
-    extractor = PreseeaExtractor(dataset_root, work_dir=work_dir, use_mfa=use_mfa)
+    extractor = PreseeaExtractor(dataset_root, work_dir=work_dir, use_mfa=use_mfa,
+                                  exclude_overlap=exclude_overlap,
+                                  mfa_output_dir=mfa_output_dir)
 
     if use_mfa:
         result = extractor.extract_all(run_mfa=run_mfa)
@@ -120,6 +151,12 @@ def extract_preseea(dataset_root: Path, output_dir: Path,
     logger.info(f"  - Speakers: {result.statistics.get('unique_speakers', 0):,}")
     logger.info(f"  - Utterances: {result.statistics.get('unique_utterances', 0):,}")
     logger.info(f"  - Issues: {result.statistics.get('total_issues', 0)}")
+
+    # Log overlap statistics
+    overlap_count = result.statistics.get('candidates_with_overlap', 0)
+    no_overlap_count = result.statistics.get('candidates_without_overlap', 0)
+    logger.info(f"  - With overlap markers: {overlap_count:,}")
+    logger.info(f"  - Without overlap markers: {no_overlap_count:,}")
 
     if result.statistics.get('by_context'):
         logger.info("  - By context:")
@@ -161,7 +198,7 @@ Examples:
     extract_parser = subparsers.add_parser('extract', help='Extract trill /r/ candidates')
     extract_parser.add_argument(
         'dataset',
-        choices=['dimex100', 'albayzin', 'preseea', 'all'],
+        choices=['dimex100', 'albayzin', 'preseea', 'glissando', 'all'],
         help='Dataset to extract from'
     )
     extract_parser.add_argument(
@@ -191,6 +228,11 @@ Examples:
         '--skip-mfa-run',
         action='store_true',
         help='Use existing MFA outputs without re-running'
+    )
+    extract_parser.add_argument(
+        '--exclude-overlap',
+        action='store_true',
+        help='Exclude PRESEEA utterances with speaker overlap markers'
     )
     extract_parser.add_argument(
         '-v', '--verbose',
@@ -252,9 +294,17 @@ Examples:
             preseea_root = dataset_dir / 'preseea'
             if preseea_root.exists():
                 extract_preseea(preseea_root, output_dir,
-                              use_mfa=use_mfa, run_mfa=run_mfa)
+                              use_mfa=use_mfa, run_mfa=run_mfa,
+                              exclude_overlap=args.exclude_overlap)
             else:
                 logger.warning(f"PRESEEA not found at {preseea_root}")
+
+        if args.dataset == 'glissando' or args.dataset == 'all':
+            glissando_root = dataset_dir / '03 glissando-sp'
+            if glissando_root.exists():
+                extract_glissando(glissando_root, output_dir)
+            else:
+                logger.warning(f"Glissando-sp not found at {glissando_root}")
 
         logger.info("Extraction complete!")
 

@@ -270,14 +270,16 @@ class MFARunner:
         """
         trills = []
 
-        # Spanish MFA model uses these symbols for trill
-        trill_labels = {'r', 'rr', 'ɾ', 'ʀ'}
+        # Spanish MFA model uses:
+        # - 'r' = alveolar trill /r/ (multiple occlusions)
+        # - 'ɾ' = alveolar tap /ɾ/ (single occlusion) - EXCLUDED
+        # - 'rr' = alternative notation for trill
+        # We only want trills, not taps
+        trill_labels = {'r', 'rr', 'ʀ'}
 
         for i, phoneme in enumerate(phonemes):
-            # Check if this is a trill
-            # Note: MFA Spanish model might use 'r' for both tap and trill
-            # We'll flag all 'r' sounds and classify later
-            if phoneme.label.lower() in trill_labels:
+            # Only include trills, not taps
+            if phoneme.label in trill_labels:
                 trills.append((i, phoneme))
 
         return trills

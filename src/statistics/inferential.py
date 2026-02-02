@@ -301,3 +301,107 @@ def _apply_correction(
         result.significant = p_adj < 0.05
 
     return results
+
+
+def run_mixed_effects_tests(
+    df: pd.DataFrame,
+    outcome_vars: List[str],
+    predictor_vars: List[str],
+    config: AnalysisConfig
+) -> List[dict]:
+    """
+    Run mixed-effects linear models with speaker as random effect.
+
+    This is the A2 ablation study comparing token-level analysis
+    with speaker-level aggregated analysis.
+
+    Args:
+        df: Token-level data DataFrame (not aggregated)
+        outcome_vars: List of outcome variable names
+        predictor_vars: List of predictor variable names
+        config: Analysis configuration
+
+    Returns:
+        List of dictionaries with mixed-effects results
+    """
+    try:
+        import statsmodels.api as sm
+        from statsmodels.regression.mixed_linear_model import MixedLM
+        from statsmodels.tools.sm_exceptions import ConvergenceWarning
+        import warnings
+    except ImportError:
+        logger.error("statsmodels not installed. Run: pip install statsmodels")
+        return []
+
+    results = []
+
+    for outcome_var in outcome_vars:
+        if outcome_var not in df.columns:
+            continue
+
+        for predictor_var in predictor_vars:
+            if predictor_var not in df.columns:
+                continue
+
+            # Prepare data
+            valid_df = df[~df[predictor_var].isin(['unknown', None, '', 'ambiguous'])].copy()
+            valid_df = valid_df.dropna(subset=[outcome_var, predictor_var, 'speaker_id'])
+
+            # Skip if insufficient data
+            if len(valid_df) < 20 or valid_df['speaker_id'].nunique() < 5:
+                continue
+
+            # For two-group predictors (e.g., sex), create binary coding
+            groups = valid_df[predictor_var].unique()
+            if len(groups) == 2:
+                # Binary predictor
+                group_map = {groups[0]: 0, groups[1]: 1}
+                valid_df['predictor_coded'] = valid_df[predictor_var].map(group_map)
+            else:
+                # Multi-group: skip for now (mixed-effects with multiple groups is complex)
+                continue
+
+            try:
+                # Suppress convergence warnings for cleaner output
+                with warnings.catch_warnings():
+                    warnings.filterwarnings('ignore', category=ConvergenceWarning)
+
+                    # Model: outcome ~ predictor + (1|speaker_id)
+                    model = MixedLM(
+                        endog=valid_df[outcome_var],
+                        exog=sm.add_constant(valid_df['predictor_coded']),
+                        groups=valid_df['speaker_id']
+                    )
+                    fit = model.fit(reml=True)
+
+                # Extract results
+                result = {
+                    'test_id': f"{outcome_var}_by_{predictor_var}_mixed",
+                    'outcome_variable': outcome_var,
+                    'predictor_variable': predictor_var,
+                    'test_type': 'Mixed-Effects Linear Model',
+                    'n_observations': len(valid_df),
+                    'n_speakers': valid_df['speaker_id'].nunique(),
+                    'fixed_effect_coef': fit.fe_params.get('predictor_coded', np.nan),
+                    'fixed_effect_se': fit.bse_fe.get('predictor_coded', np.nan),
+                    'fixed_effect_z': fit.tvalues.get('predictor_coded', np.nan),
+                    'p_value': fit.pvalues.get('predictor_coded', np.nan),
+                    'random_effect_var': fit.cov_re.iloc[0, 0] if hasattr(fit.cov_re, 'iloc') else np.nan,
+                    'log_likelihood': fit.llf,
+                    'aic': fit.aic,
+                    'bic': fit.bic,
+                    'group_labels': {0: groups[0], 1: groups[1]},
+                    'significant': fit.pvalues.get('predictor_coded', 1.0) < config.alpha,
+                    'converged': fit.converged if hasattr(fit, 'converged') else True
+                }
+                results.append(result)
+
+                logger.info(f"  Mixed-effects {outcome_var}~{predictor_var}: "
+                           f"coef={result['fixed_effect_coef']:.3f}, "
+                           f"p={result['p_value']:.4f}")
+
+            except Exception as e:
+                logger.warning(f"Mixed-effects failed for {outcome_var}~{predictor_var}: {e}")
+                continue
+
+    return results

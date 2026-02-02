@@ -162,29 +162,60 @@ def classify_phoneme_context(prev_phoneme: Optional[str],
     Args:
         prev_phoneme: Previous phoneme (or None)
         next_phoneme: Next phoneme (or None)
-        phoneme_label: The /r/ phoneme label (e.g., 'r(', 'rr')
+        phoneme_label: The /r/ phoneme label (e.g., 'r(', 'rr', 'r')
 
     Returns:
         Context label
     """
-    # Phoneme-level vowel markers (varies by corpus)
-    vowel_phonemes = {'a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'}
+    # Phoneme-level vowel markers (includes IPA vowels from MFA)
+    vowel_phonemes = {
+        'a', 'e', 'i', 'o', 'u',  # Basic vowels
+        'A', 'E', 'I', 'O', 'U',  # Uppercase
+        'ä', 'ë', 'ï', 'ö', 'ü',  # Umlauts
+        'á', 'é', 'í', 'ó', 'ú',  # Accented
+    }
 
-    # Trill-triggering consonant phonemes
-    trill_triggers = {'n', 'l', 's', 'N', 'L', 'S'}
+    # Trill-triggering consonant phonemes (includes IPA variants)
+    trill_triggers = {
+        'n', 'l', 's',
+        'N', 'L', 'S',
+        'ɲ', 'ʎ',  # IPA palatals
+        'n̪', 'ɲ̟',  # IPA dentals
+    }
 
-    # If phoneme is explicitly marked as trill
-    if phoneme_label in ('r(', 'rr', 'R'):
+    # Silence/boundary markers
+    silence_markers = {'.sil', '#', '', 'sil', 'sp', 'spn', None}
+
+    # If phoneme is explicitly marked as trill (various notations)
+    # Includes: r( (DIMEx100), rr (ALBAYZIN), r (MFA trill)
+    if phoneme_label in ('r(', 'rr', 'R', 'r'):
         # Already known to be trill, classify by position
-        if prev_phoneme is None or prev_phoneme in ('.sil', '#', ''):
+        if prev_phoneme is None or prev_phoneme in silence_markers:
             return 'word_initial'
 
-        if prev_phoneme in vowel_phonemes:
-            if next_phoneme in vowel_phonemes:
+        # Clean prev/next phonemes for comparison
+        prev_clean = prev_phoneme.lower() if prev_phoneme else ''
+        next_clean = next_phoneme.lower() if next_phoneme else ''
+
+        # Check if previous phoneme is a vowel
+        is_prev_vowel = prev_clean in vowel_phonemes or (
+            len(prev_clean) == 1 and prev_clean in 'aeiouáéíóú'
+        )
+
+        # Check if next phoneme is a vowel
+        is_next_vowel = next_clean in vowel_phonemes or (
+            len(next_clean) == 1 and next_clean in 'aeiouáéíóú'
+        )
+
+        if is_prev_vowel:
+            if is_next_vowel:
                 return 'intervocalic_rr'
             return 'post_vocalic'
 
-        if prev_phoneme in trill_triggers:
+        if prev_phoneme in trill_triggers or prev_clean in {'n', 'l', 's'}:
             return 'after_nls'
+
+        # Word-initial when preceded by silence or unknown
+        return 'word_initial'
 
     return 'unknown'
