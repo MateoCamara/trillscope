@@ -520,15 +520,16 @@ def _merge_mfa_dataset(measurements: pd.DataFrame, dataset: str) -> pd.DataFrame
 MFA_DATASETS = ['mailabs', 'tedx', 'heroico', 'commonvoice']
 
 
-def _aggregate_by_speaker(df: pd.DataFrame) -> pd.DataFrame:
+def _aggregate_by_speaker(df: pd.DataFrame, include_context: bool = False) -> pd.DataFrame:
     """
     Aggregate measurements by speaker to avoid pseudo-replication.
 
     Args:
         df: Merged measurements DataFrame
+        include_context: If True, aggregate by speaker+context_label (for context analysis)
 
     Returns:
-        DataFrame with one row per speaker (mean of acoustic measures)
+        DataFrame with one row per speaker (or per speaker+context if include_context=True)
     """
     # Columns to aggregate (numeric acoustic measures)
     agg_cols = [
@@ -548,8 +549,13 @@ def _aggregate_by_speaker(df: pd.DataFrame) -> pd.DataFrame:
     agg_dict = {col: 'mean' for col in agg_cols}
     agg_dict['utt_id'] = 'count'  # Count of tokens per speaker
 
-    # Group by speaker
-    grouped = df.groupby(['speaker_id', 'dataset']).agg(agg_dict).reset_index()
+    # Determine grouping columns
+    group_cols = ['speaker_id', 'dataset']
+    if include_context and 'context_label' in df.columns:
+        group_cols.append('context_label')
+
+    # Group by speaker (and optionally context)
+    grouped = df.groupby(group_cols).agg(agg_dict).reset_index()
     grouped = grouped.rename(columns={'utt_id': 'n_tokens'})
 
     # Merge back metadata (first value per speaker)

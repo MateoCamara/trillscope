@@ -103,8 +103,13 @@ def run_analysis(
     }
 
     # 3. Aggregate by speaker for traditional analysis
-    df_aggregated = _aggregate_by_speaker(df)
-    logger.info(f"Aggregated to {len(df_aggregated)} speakers")
+    # For context analysis, aggregate by speaker+context
+    include_context = 'context_label' in config.predictor_variables
+    df_aggregated = _aggregate_by_speaker(df, include_context=include_context)
+    if include_context:
+        logger.info(f"Aggregated to {len(df_aggregated)} speaker-context combinations")
+    else:
+        logger.info(f"Aggregated to {len(df_aggregated)} speakers")
 
     # 4. Compute descriptive statistics
     logger.info("Computing descriptive statistics...")
@@ -186,13 +191,13 @@ def main():
         'factors',
         nargs='?',
         default='all',
-        choices=['all', 'sex', 'age', 'education', 'country', 'region', 'context'],
-        help='Factors to analyze (geographic includes country and region)'
+        choices=['all', 'sex', 'age', 'education', 'country', 'region', 'context', 'speech_style'],
+        help='Factors to analyze'
     )
     analyze_parser.add_argument(
         '--datasets',
         nargs='+',
-        default=['albayzin', 'dimex100', 'preseea', 'glissando'],
+        default=['albayzin', 'dimex100', 'preseea', 'glissando', 'mailabs', 'tedx', 'heroico', 'commonvoice'],
         help='Datasets to include'
     )
     analyze_parser.add_argument(
@@ -306,7 +311,7 @@ def main():
     if args.command == 'analyze':
         # Configure predictors based on factors
         if args.factors == 'all':
-            predictor_vars = ['sex', 'age_bin', 'education_bin', 'country', 'region', 'context_label']
+            predictor_vars = ['sex', 'age_bin', 'education_bin', 'country', 'speech_style', 'context_label']
         elif args.factors == 'sex':
             predictor_vars = ['sex']
         elif args.factors == 'age':
@@ -319,6 +324,8 @@ def main():
             predictor_vars = ['region']
         elif args.factors == 'context':
             predictor_vars = ['context_label']
+        elif args.factors == 'speech_style':
+            predictor_vars = ['speech_style']
         else:
             predictor_vars = ['sex', 'age_bin', 'education_bin']
 
