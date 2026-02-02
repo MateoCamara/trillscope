@@ -454,15 +454,24 @@ def _merge_mfa_dataset(measurements: pd.DataFrame, dataset: str) -> pd.DataFrame
     else:
         speaker_meta['sex'] = 'unknown'
 
-    # Age binning
+    # Age binning - handles both numeric ages and text labels (twenties, thirties, etc.)
     def bin_age(age):
-        if pd.isna(age):
+        if pd.isna(age) or age == 'unknown':
             return 'unknown'
+        # Handle Common Voice text labels
+        age_str = str(age).lower()
+        if age_str in ['teens', 'twenties']:
+            return '<30'
+        elif age_str in ['thirties', 'fourties', 'forties', 'fifties']:
+            return '30-55'
+        elif age_str in ['sixties', 'seventies', 'eighties', 'nineties']:
+            return '>55'
+        # Handle numeric ages
         try:
-            age = int(age)
-            if age < 30:
+            age_num = int(age)
+            if age_num < 30:
                 return '<30'
-            elif age <= 55:
+            elif age_num <= 55:
                 return '30-55'
             else:
                 return '>55'
