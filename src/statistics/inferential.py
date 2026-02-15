@@ -131,7 +131,11 @@ def run_multi_group_test(
         return None
 
     # Kruskal-Wallis H test
-    statistic, p_value = scipy_stats.kruskal(*group_data)
+    try:
+        statistic, p_value = scipy_stats.kruskal(*group_data)
+    except ValueError as e:
+        logger.warning(f"Kruskal-Wallis failed for {group_var} on {outcome_var}: {e}")
+        return None
 
     # Epsilon-squared effect size
     n_total = sum(len(g) for g in group_data)

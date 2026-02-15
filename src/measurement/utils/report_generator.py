@@ -43,6 +43,9 @@ class MeasurementReportGenerator:
         # Cycle distribution
         lines.extend(self._cycle_distribution_section(result))
 
+        # Cycle confidence
+        lines.extend(self._confidence_section(result))
+
         # Voicing statistics
         lines.extend(self._voicing_section(result))
 
@@ -120,6 +123,37 @@ class MeasurementReportGenerator:
             lines.append(f"- **Mode**: {mode_cycles} cycles")
             lines.append(f"- **Mean**: {mean_cycles:.2f} cycles")
             lines.append("")
+
+        return lines
+
+    def _confidence_section(self, result: MeasurementResult) -> list:
+        """Generate cycle detection confidence section."""
+        lines = []
+        lines.append("## Cycle Detection Confidence\n")
+
+        stats = result.statistics
+        mean_conf = stats.get('mean_confidence')
+        conf_dist = stats.get('confidence_distribution', {})
+
+        if mean_conf is None or not conf_dist:
+            lines.append("No confidence data available.\n")
+            return lines
+
+        total = conf_dist.get('high', 0) + conf_dist.get('medium', 0) + conf_dist.get('low', 0)
+        if total == 0:
+            lines.append("No confidence data available.\n")
+            return lines
+
+        lines.append(f"- **Mean confidence**: {mean_conf:.3f}")
+        lines.append(f"- **High (>0.7)**: {conf_dist.get('high', 0):,} ({conf_dist.get('high', 0)/total*100:.1f}%)")
+        lines.append(f"- **Medium (0.3-0.7)**: {conf_dist.get('medium', 0):,} ({conf_dist.get('medium', 0)/total*100:.1f}%)")
+        lines.append(f"- **Low (<0.3)**: {conf_dist.get('low', 0):,} ({conf_dist.get('low', 0)/total*100:.1f}%)")
+        lines.append("")
+
+        # Add method info from config
+        method = result.config.cycle_method
+        lines.append(f"- **Detection method**: {method}")
+        lines.append("")
 
         return lines
 
@@ -241,9 +275,14 @@ class MeasurementReportGenerator:
         lines.append("|-----------|-------|")
         lines.append(f"| Target sample rate | {config.target_sr} Hz |")
         lines.append(f"| Context padding | {config.context_ms} ms |")
+        lines.append(f"| Cycle detection method | {config.cycle_method} |")
         lines.append(f"| Min cycle duration | {config.min_cycle_duration_ms} ms |")
         lines.append(f"| Max cycle duration | {config.max_cycle_duration_ms} ms |")
         lines.append(f"| Envelope smoothing | {config.envelope_smoothing_ms} ms |")
+        lines.append(f"| Band-pass low cutoff | {config.bp_freq_low_hz} Hz |")
+        lines.append(f"| Band-pass high cutoff | {config.bp_freq_high_hz} Hz |")
+        lines.append(f"| STFT window | {config.spectrogram_win_ms} ms |")
+        lines.append(f"| STFT hop | {config.spectrogram_hop_ms} ms |")
         lines.append(f"| Pitch floor | {config.pitch_floor_hz} Hz |")
         lines.append(f"| Pitch ceiling | {config.pitch_ceiling_hz} Hz |")
         lines.append(f"| Min duration threshold | {config.min_duration_ms} ms |")

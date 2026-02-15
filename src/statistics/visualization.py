@@ -44,6 +44,7 @@ def create_boxplots(
 
     # Filter to valid groups
     valid_df = df[~df[group_var].isin(['unknown', None, ''])].copy()
+    valid_df = valid_df[valid_df[group_var].notna()]
 
     if len(valid_df) == 0:
         logger.warning(f"No valid data for {group_var}")
@@ -66,33 +67,20 @@ def create_boxplots(
         axes = axes.flatten()
 
     # Color palette
-    n_groups = valid_df[group_var].nunique()
+    groups = [str(g) for g in valid_df[group_var].unique()]
+    n_groups = len(groups)
     palette = sns.color_palette("Set2", n_groups)
 
     for idx, var in enumerate(outcome_vars):
         ax = axes[idx]
 
-        # Create box plot
-        sns.boxplot(
-            data=valid_df,
-            x=group_var,
-            y=var,
-            ax=ax,
-            palette=palette,
-            showfliers=True
-        )
-
-        # Add strip plot for individual points (small sample)
-        if len(valid_df) < 500:
-            sns.stripplot(
-                data=valid_df,
-                x=group_var,
-                y=var,
-                ax=ax,
-                color='black',
-                alpha=0.3,
-                size=3
-            )
+        # Create box plot using matplotlib directly (seaborn 0.13.2 has bugs)
+        group_data = [valid_df[valid_df[group_var] == g][var].dropna().values
+                      for g in valid_df[group_var].unique()]
+        bp = ax.boxplot(group_data, patch_artist=True, showfliers=True)
+        for patch, color in zip(bp['boxes'], palette):
+            patch.set_facecolor(color)
+        ax.set_xticklabels([str(g) for g in valid_df[group_var].unique()], rotation=45, ha='right')
 
         ax.set_xlabel(group_var.replace('_', ' ').title())
         ax.set_ylabel(_format_var_name(var))
@@ -189,6 +177,7 @@ def create_violin_plots(
     saved_paths = []
 
     valid_df = df[~df[group_var].isin(['unknown', None, ''])].copy()
+    valid_df = valid_df[valid_df[group_var].notna()]
     if len(valid_df) == 0:
         return []
 
@@ -206,20 +195,26 @@ def create_violin_plots(
     else:
         axes = axes.flatten()
 
-    n_groups = valid_df[group_var].nunique()
+    groups = list(valid_df[group_var].unique())
+    n_groups = len(groups)
     palette = sns.color_palette("Set2", n_groups)
 
     for idx, var in enumerate(outcome_vars):
         ax = axes[idx]
 
-        sns.violinplot(
-            data=valid_df,
-            x=group_var,
-            y=var,
-            ax=ax,
-            palette=palette,
-            inner='box'
-        )
+        # Use matplotlib violinplot directly to avoid seaborn 0.13.2 bugs
+        group_data = [valid_df[valid_df[group_var] == g][var].dropna().values
+                      for g in groups]
+        # Filter out empty groups
+        non_empty = [(d, g) for d, g in zip(group_data, groups) if len(d) > 0]
+        if non_empty:
+            data_list, label_list = zip(*non_empty)
+            vp = ax.violinplot(list(data_list), showmedians=True)
+            for i, body in enumerate(vp['bodies']):
+                body.set_facecolor(palette[i % len(palette)])
+                body.set_alpha(0.7)
+            ax.set_xticks(range(1, len(label_list) + 1))
+            ax.set_xticklabels([str(g) for g in label_list], rotation=45, ha='right')
 
         ax.set_xlabel(group_var.replace('_', ' ').title())
         ax.set_ylabel(_format_var_name(var))

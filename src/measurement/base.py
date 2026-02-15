@@ -28,6 +28,14 @@ class MeasurementConfig:
     envelope_smoothing_ms: float = 5.0    # Envelope smoothing window
     min_cycle_prominence: float = 0.1     # Min peak prominence (normalized)
 
+    # Cycle detection - multi-method
+    cycle_method: str = 'multi'           # 'multi', 'envelope', 'legacy'
+    bp_freq_low_hz: float = 500.0         # Band-pass low cutoff
+    bp_freq_high_hz: float = 4000.0       # Band-pass high cutoff
+    bp_filter_order: int = 4              # Butterworth filter order
+    spectrogram_win_ms: float = 4.0       # STFT window size
+    spectrogram_hop_ms: float = 1.0       # STFT hop size
+
     # Voicing detection (Praat parameters)
     pitch_floor_hz: float = 75.0
     pitch_ceiling_hz: float = 500.0
@@ -61,6 +69,7 @@ class AcousticMetrics:
     cycle_rate_hz: float = 0.0
     inter_cycle_intervals_ms: List[float] = field(default_factory=list)
     cycle_regularity: float = 0.0  # CV of intervals (0=perfect)
+    cycle_confidence: float = 0.0  # 0-1 consensus confidence
 
     # Voicing
     voicing_pct: float = 0.0       # 0-100%
@@ -96,6 +105,7 @@ class AcousticMetrics:
             'num_cycles': self.num_cycles,
             'cycle_rate_hz': self.cycle_rate_hz,
             'cycle_regularity': self.cycle_regularity,
+            'cycle_confidence': self.cycle_confidence,
             'voicing_pct': self.voicing_pct,
             'mean_f0_hz': self.mean_f0_hz,
             'f0_range_hz': self.f0_range_hz,
@@ -163,6 +173,18 @@ class MeasurementResult:
             # Voicing stats
             voicing = [m.voicing_pct for m in successful]
             self.statistics['mean_voicing_pct'] = sum(voicing) / len(voicing)
+
+            # Confidence distribution
+            confidences = [m.cycle_confidence for m in successful]
+            high_conf = sum(1 for c in confidences if c > 0.7)
+            med_conf = sum(1 for c in confidences if 0.3 <= c <= 0.7)
+            low_conf = sum(1 for c in confidences if c < 0.3)
+            self.statistics['mean_confidence'] = sum(confidences) / len(confidences)
+            self.statistics['confidence_distribution'] = {
+                'high': high_conf,
+                'medium': med_conf,
+                'low': low_conf,
+            }
 
             # F0 stats (only for tokens with F0)
             f0_values = [m.mean_f0_hz for m in successful if m.mean_f0_hz is not None]

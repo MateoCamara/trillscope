@@ -154,17 +154,24 @@ class BaseMeasurementProcessor(ABC):
 
         # Measure cycles
         try:
-            num_cycles, intervals, regularity = detect_trill_cycles(
+            num_cycles, intervals, regularity, confidence = detect_trill_cycles(
                 audio, sr,
                 min_cycle_duration_ms=self.config.min_cycle_duration_ms,
                 max_cycle_duration_ms=self.config.max_cycle_duration_ms,
                 envelope_smoothing_ms=self.config.envelope_smoothing_ms,
-                min_prominence=self.config.min_cycle_prominence
+                min_prominence=self.config.min_cycle_prominence,
+                method=self.config.cycle_method,
+                bp_low=self.config.bp_freq_low_hz,
+                bp_high=self.config.bp_freq_high_hz,
+                bp_filter_order=self.config.bp_filter_order,
+                spec_win_ms=self.config.spectrogram_win_ms,
+                spec_hop_ms=self.config.spectrogram_hop_ms,
             )
 
             metric.num_cycles = num_cycles
             metric.inter_cycle_intervals_ms = intervals
             metric.cycle_regularity = regularity
+            metric.cycle_confidence = confidence
             metric.cycle_rate_hz = compute_cycle_rate(num_cycles, row['duration_ms'])
 
         except Exception as e:

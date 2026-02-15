@@ -87,10 +87,16 @@ def show_config():
     print()
 
     print("Cycle detection:")
+    print(f"  Method                : {config.cycle_method}")
     print(f"  Min cycle duration    : {config.min_cycle_duration_ms} ms")
     print(f"  Max cycle duration    : {config.max_cycle_duration_ms} ms")
     print(f"  Envelope smoothing    : {config.envelope_smoothing_ms} ms")
     print(f"  Min peak prominence   : {config.min_cycle_prominence}")
+    print(f"  Band-pass low cutoff  : {config.bp_freq_low_hz} Hz")
+    print(f"  Band-pass high cutoff : {config.bp_freq_high_hz} Hz")
+    print(f"  Filter order          : {config.bp_filter_order}")
+    print(f"  STFT window           : {config.spectrogram_win_ms} ms")
+    print(f"  STFT hop              : {config.spectrogram_hop_ms} ms")
     print()
 
     print("Voicing detection:")
@@ -177,6 +183,12 @@ Output files:
         help='Minimum token duration in ms (default: 5)'
     )
     measure_parser.add_argument(
+        '--cycle-method',
+        choices=['multi', 'envelope', 'legacy'],
+        default='multi',
+        help='Cycle detection method (default: multi)'
+    )
+    measure_parser.add_argument(
         '-v', '--verbose',
         action='store_true',
         help='Enable verbose logging'
@@ -210,6 +222,7 @@ Output files:
             min_cycle_duration_ms=args.min_cycle_ms,
             max_cycle_duration_ms=args.max_cycle_ms,
             min_duration_ms=args.min_duration_ms,
+            cycle_method=args.cycle_method,
         )
 
         skip_invalid = not args.include_invalid_timing
@@ -239,6 +252,13 @@ Output files:
                 logger.info(f"  Total tokens: {stats.get('total_tokens', 0):,}")
                 logger.info(f"  Successful: {stats.get('successful', 0):,}")
                 logger.info(f"  Failed: {stats.get('failed', 0):,}")
+
+                # Confidence summary
+                conf_dist = stats.get('confidence_distribution', {})
+                if conf_dist:
+                    logger.info(f"  Confidence: high={conf_dist.get('high', 0):,}, "
+                                f"medium={conf_dist.get('medium', 0):,}, "
+                                f"low={conf_dist.get('low', 0):,}")
 
                 # Cycle distribution
                 cycle_dist = stats.get('cycle_distribution', {})
