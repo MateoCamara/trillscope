@@ -14,10 +14,10 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-import librosa
 import numpy as np
 import pandas as pd
 
+from .audio_io import load_audio_full
 from .detector import DetectorConfig, DetectionResult, detect_closures
 
 log = logging.getLogger(__name__)
@@ -137,7 +137,7 @@ def run_dataset(
 
     for audio_path, group in df.groupby("audio_path", sort=False):
         try:
-            audio, sr = librosa.load(str(audio_path), sr=target_sr, mono=True)
+            audio, sr = load_audio_full(audio_path, target_sr=target_sr)
         except Exception as exc:
             log.warning("audio load failed: %s: %s", audio_path, exc)
             failed_audio += 1
