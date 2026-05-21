@@ -1,0 +1,27 @@
+# Detector v2 parameters. Mirrors erres.detector.cycle_detector.DetectorConfig.
+# All physical constants are anchored in the trill phonetics literature:
+#   - Closures ~ 15–30 ms; full cycles ~ 30–50 ms; trills ~ 50–120 ms.
+#   - MFA alignment grid is 10 ms; we add 10 ms slack on each side.
+#
+# Tune `closure_threshold_pct` and `closure_prominence_db` against the manual
+# annotation set (Phase A2) before locking values.
+
+frame_ms: 2.5
+
+low_band: [60.0, 500.0]
+mid_band: [500.0, 3500.0]
+
+min_inter_closure_ms: 15.0
+max_inter_closure_ms: 50.0
+closure_window_ms: 50.0
+closure_threshold_pct: 0.25
+closure_prominence_db: 8.0
+
+release_min_lag_ms: 3.0
+release_max_lag_ms: 25.0
+release_threshold_pct: 0.40
+
+enable_periodicity_refinement: true
+period_z_threshold: 2.0
+
+boundary_expand_ms: 20.0
