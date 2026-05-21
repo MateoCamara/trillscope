@@ -35,6 +35,12 @@ env/
 # Jupyter
 .ipynb_checkpoints/
 
+# Test/lint caches
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
 # Data (too large for git)
 dataset/
 data_raw/
@@ -50,7 +56,11 @@ outputs/
 
 # Paper drafts (optional, managed separately)
 paper/*
-!paper/interspeech2026/
+!paper/iberspeech2026/
+
+# Annotation artifacts (large audio/textgrid, regenerated)
+annotations/wavs/
+annotations/textgrids/
 
 # Temporary/generated files
 nul
