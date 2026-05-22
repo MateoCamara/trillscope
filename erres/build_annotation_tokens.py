@@ -69,7 +69,11 @@ def build(
             meas = pd.read_parquet(meas_path)
             meas = (
                 meas[meas["status"] == "success"][
-                    ["utt_id", "start_ms", "end_ms", "num_cycles"]
+                    [
+                        "utt_id", "start_ms", "end_ms",
+                        "num_cycles", "voicing_pct", "cycle_confidence",
+                        "mean_intensity_db",
+                    ]
                 ]
                 .drop_duplicates(subset=["utt_id", "start_ms", "end_ms"])
                 .rename(columns={"num_cycles": "auto_cycles_old"})
@@ -77,6 +81,9 @@ def build(
             cand = cand.merge(meas, on=["utt_id", "start_ms", "end_ms"], how="left")
         else:
             cand["auto_cycles_old"] = pd.NA
+            cand["voicing_pct"] = pd.NA
+            cand["cycle_confidence"] = pd.NA
+            cand["mean_intensity_db"] = pd.NA
 
         cand = cand.merge(speaker_sex, on="speaker_id", how="left")
         cand["sex"] = cand["sex"].fillna("U")
@@ -94,8 +101,9 @@ def build(
         cand = cand.rename(columns={"start_ms": "t0_ms", "end_ms": "t1_ms", "context_label": "context"})
 
         keep = [
-            "token_id", "audio_path", "t0_ms", "t1_ms", "speaker_id",
-            "corpus", "sex", "context", "auto_cycles_old",
+            "token_id", "audio_path", "t0_ms", "t1_ms", "duration_ms",
+            "speaker_id", "corpus", "sex", "context", "auto_cycles_old",
+            "voicing_pct", "cycle_confidence", "mean_intensity_db",
         ]
         frames.append(cand[keep])
 

@@ -58,9 +58,10 @@ outputs/
 paper/*
 !paper/iberspeech2026/
 
-# Annotation artifacts (large audio/textgrid, regenerated)
+# Annotation artifacts (large audio/textgrid/png, regenerated)
 annotations/wavs/
 annotations/textgrids/
+annotations/specs/
 
 # Temporary/generated files
 nul
