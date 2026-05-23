@@ -46,6 +46,15 @@ class DetectorConfig:
     # Token-level boundary expansion (to absorb MFA alignment error)
     boundary_expand_ms: float = 20.0
 
+    # Which envelope to inspect for closure candidates.
+    # - "mid":      use only the 500-3500 Hz turbulence band. Default.
+    #               Detects voiced-through trills (lab-quality ALBAYZIN style)
+    #               where voicing continues during occlusion.
+    # - "combined": geometric mean of low + mid envelopes.
+    #               Requires both bands to drop; only triggers when voicing
+    #               actually stops during the closure (casual-speech pattern).
+    closure_envelope: str = "mid"
+
 
 @dataclass(frozen=True)
 class Closure:
@@ -120,22 +129,25 @@ def _find_closure_candidates(
     t_ms: np.ndarray,
     cfg: DetectorConfig,
 ) -> list[int]:
-    """Return frame indices of closure candidates (local minima in the combined envelope)."""
+    """Return frame indices of closure candidates (local minima in the envelope)."""
     if len(env_db) < 5:
         return []
     # Closure = local minimum of -env_db = local maximum of (-env_db)
     inverted = -env_db
-    # distance between minima
     if len(t_ms) < 2:
         return []
     frame_ms = float(t_ms[1] - t_ms[0])
     distance = max(1, int(round(cfg.min_inter_closure_ms / frame_ms)))
-    peaks, props = signal.find_peaks(
-        inverted,
-        distance=distance,
-        prominence=cfg.closure_prominence_db,
-    )
-    # threshold: closure must drop below `closure_threshold_pct` of local max within a window
+    # NOTE: do not pass prominence= here. signal.find_peaks measures prominence
+    # relative to adjacent saddle points, which collapses to a small value on
+    # uniformly periodic envelopes (every dip's neighbour is another equally
+    # deep dip, so each one looks unprominent). For trills, that erroneously
+    # killed the candidate detection. Instead we gate with the
+    # closure_threshold_pct test below, which compares each candidate to the
+    # local max within a window — a more robust criterion for periodic signals.
+    # Use a very small prominence (1 dB) only to filter out noise-floor wiggles.
+    # The real prominence gate is the manual drop-from-local-max check below.
+    peaks, _props = signal.find_peaks(inverted, distance=distance, prominence=1.0)
     win_frames = max(2, int(round(cfg.closure_window_ms / frame_ms)))
     kept: list[int] = []
     for p in peaks:
@@ -146,8 +158,16 @@ def _find_closure_candidates(
         if local_max_lin <= 0:
             continue
         ratio = local_val_lin / local_max_lin
-        if ratio <= cfg.closure_threshold_pct:
-            kept.append(int(p))
+        if ratio > cfg.closure_threshold_pct:
+            continue
+        # Re-check prominence manually: drop in dB from the local max to the
+        # candidate must be at least closure_prominence_db. This is the same
+        # idea as scipy's prominence but referenced to the window's max instead
+        # of adjacent saddles, so periodic dips are not penalised.
+        drop_db = float(env_db[lo:hi].max()) - float(env_db[p])
+        if drop_db < cfg.closure_prominence_db:
+            continue
+        kept.append(int(p))
     return kept
 
 
@@ -261,12 +281,34 @@ def detect_closures(
     audio_mid = _bandpass(audio, sr, cfg.mid_band)
     env_low, t_ms = _rms_envelope(audio_low, sr, cfg.frame_ms)
     env_mid, _ = _rms_envelope(audio_mid, sr, cfg.frame_ms)
-    # Combine bands geometrically (drops only count if BOTH bands drop)
-    env_combined = np.sqrt(env_low * env_mid + 1e-12)
-    env_db = _to_db(env_combined)
+    if cfg.closure_envelope == "combined":
+        # Both bands must drop: only fires when voicing stops during the closure.
+        env_for_closures = np.sqrt(env_low * env_mid + 1e-12)
+    else:
+        # Mid band only: detects closures even when voicing continues
+        # through the constriction (lab-quality voiced-through trills).
+        env_for_closures = env_mid
+    env_db = _to_db(env_for_closures)
+    env_combined_db = _to_db(np.sqrt(env_low * env_mid + 1e-12))
 
     # Closure candidates
     candidate_frames = _find_closure_candidates(env_db, t_ms, cfg)
+    if cfg.closure_envelope == "mid" and candidate_frames:
+        # Sanity check on the combined envelope: a real closure should also
+        # show at least a small drop (>=3 dB) in the combined envelope. This
+        # rejects boundary artifacts where the mid band drops because the
+        # following segment is a voiced vowel (mid is naturally lower in
+        # voicing-only audio), while the combined envelope barely changes.
+        win_frames = max(2, int(round(cfg.closure_window_ms / (t_ms[1] - t_ms[0]))))
+        filtered = []
+        for p in candidate_frames:
+            lo = max(0, p - win_frames // 2)
+            hi = min(len(env_combined_db), p + win_frames // 2 + 1)
+            local_max = float(env_combined_db[lo:hi].max())
+            drop = local_max - float(env_combined_db[p])
+            if drop >= 3.0:
+                filtered.append(p)
+        candidate_frames = filtered
     if not candidate_frames:
         notes.append("no closure candidates found")
         return DetectionResult(closures=[], confidence=0.0, notes=notes)
