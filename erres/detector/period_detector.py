@@ -75,8 +75,7 @@ def detect_n_closures_by_period(
         return PeriodResult(n_closures=0, period_ms=float("nan"), regularity=0.0, notes=notes)
 
     env = env - env.mean()
-    denom = float(np.dot(env, env))
-    if denom <= 0:
+    if float(np.dot(env, env)) <= 0:
         notes.append("envelope has zero variance")
         return PeriodResult(n_closures=0, period_ms=float("nan"), regularity=0.0, notes=notes)
 
@@ -89,7 +88,15 @@ def detect_n_closures_by_period(
     acf = np.empty(lag_hi - lag_lo + 1, dtype=np.float64)
     n = len(env)
     for k, lag in enumerate(range(lag_lo, lag_hi + 1)):
-        acf[k] = float(np.dot(env[: n - lag], env[lag:])) / denom
+        a = env[: n - lag]
+        b = env[lag:]
+        denom_a = float(np.dot(a, a))
+        denom_b = float(np.dot(b, b))
+        if denom_a <= 0 or denom_b <= 0:
+            acf[k] = 0.0
+        else:
+            # Pearson-style normalised cross-correlation: length-invariant.
+            acf[k] = float(np.dot(a, b)) / np.sqrt(denom_a * denom_b)
 
     peak_idx = int(np.argmax(acf))
     regularity = float(np.clip(acf[peak_idx], 0.0, 1.0))

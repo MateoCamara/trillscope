@@ -114,12 +114,15 @@ def run_dataset(
     cfg: DetectorConfig | None = None,
     target_sr: int = 16_000,
     progress_every: int = 500,
+    keep_keys: set[tuple] | None = None,
 ) -> pd.DataFrame:
     """Run detector v2 on every timed token in `candidates_path`.
 
     Tokens without timing (alignment_source == "orthographic" or duration_ms <= 0)
-    are dropped before the loop. Returns the output DataFrame and also writes it
-    to `output_path` as parquet.
+    are dropped before the loop. If `keep_keys` is given, only tokens whose
+    (utt_id, start_ms_rounded, end_ms_rounded) tuple is in the set are processed
+    (used to apply the upstream quality filter). Returns the output DataFrame
+    and also writes it to `output_path` as parquet.
     """
     cfg = cfg or DetectorConfig()
     df = pd.read_parquet(candidates_path)
@@ -130,6 +133,12 @@ def run_dataset(
         df = df[df["alignment_source"] != "orthographic"]
     n_timed = len(df)
     log.info("%s: %d/%d tokens have valid timing", candidates_path.name, n_timed, n_total)
+
+    if keep_keys is not None:
+        before = len(df)
+        df["_k"] = list(zip(df["utt_id"], df["start_ms"].round(4), df["end_ms"].round(4)))
+        df = df[df["_k"].isin(keep_keys)].drop(columns=["_k"])
+        log.info("quality filter: %d/%d tokens retained", len(df), before)
 
     out_rows: list[dict] = []
     processed = 0

@@ -53,14 +53,62 @@ def _resolve_targets(name: str) -> list[str]:
 
 def _cmd_detect(args: argparse.Namespace) -> None:
     cfg = load_config(args.config)
+    keep_keys_by_corpus = _load_filter_keys(args)
+    filter_on = bool(keep_keys_by_corpus)
     for ds in _resolve_targets(args.dataset):
         cand = args.candidates_dir / f"r_candidates_{ds}.parquet"
         out = args.out_dir / f"closures_v2_{ds}.parquet"
         if not cand.exists():
             logging.warning("skip %s: %s not found", ds, cand)
             continue
+        if filter_on and ds not in keep_keys_by_corpus:
+            logging.info("-> skip %s (not in tokens.parquet, filter excludes it)", ds)
+            continue
         logging.info("-> detect %s", ds)
-        run_detect(cand, out, cfg=cfg)
+        run_detect(cand, out, cfg=cfg, keep_keys=keep_keys_by_corpus.get(ds))
+
+
+def _load_filter_keys(args: argparse.Namespace) -> dict[str, set]:
+    """If tokens.parquet exists, apply the quality filter and return the set
+    of (utt_id, start_ms, end_ms) tuples per dataset."""
+    if args.no_filter:
+        return {}
+    tokens_path = args.candidates_dir / "tokens.parquet"
+    if not tokens_path.exists():
+        logging.warning("tokens.parquet not found; running without quality filter")
+        return {}
+    import pandas as pd
+    from .build_tokens import CORPUS_CANONICAL
+    from .quality import apply_quality_filter
+
+    tokens = pd.read_parquet(tokens_path)
+    if "periodicity_score" not in tokens.columns:
+        logging.warning("tokens.parquet lacks periodicity_score; running without filter")
+        return {}
+    filt = apply_quality_filter(tokens)
+    logging.info("quality filter: %d/%d tokens survive", len(filt), len(tokens))
+    canonical_to_key = {v: k for k, v in CORPUS_CANONICAL.items()}
+    out: dict[str, set] = {}
+    for corpus, group in filt.groupby("corpus"):
+        ds = canonical_to_key.get(corpus)
+        if ds is None:
+            continue
+        # Recover utt_id from token_id: "<ds>-<utt_id>-<word_idx>-<r_idx>"
+        # Better: parse from group; tokens.parquet drops utt_id. We need it.
+        # The token_id has format ds-UTT_ID-wi-ri. Split by '-' but utt_ids can contain '-'.
+        # We split off the prefix (ds + "-") and the last two '-N' chunks.
+        utt_ids = []
+        for tid in group["token_id"]:
+            tail = tid[len(ds) + 1:]
+            # strip "-<word_idx>-<r_idx>"
+            utt = tail.rsplit("-", 2)[0]
+            utt_ids.append(utt)
+        keys = set(
+            zip(utt_ids, group["t0_ms"].round(4), group["t1_ms"].round(4))
+        )
+        out[ds] = keys
+        logging.info("  %s: %d filtered tokens", ds, len(keys))
+    return out
 
 
 def _cmd_cross_validate(args: argparse.Namespace) -> None:
@@ -107,6 +155,8 @@ def main(argv: list[str] | None = None) -> None:
                    help=common_paths["out_dir"][2])
     p.add_argument("--config", type=Path, default=Path("config/detector.yaml"),
                    help="Detector YAML config (default: config/detector.yaml)")
+    p.add_argument("--no-filter", action="store_true",
+                   help="Skip the upstream quality filter; run detect on every timed token.")
     p.add_argument("-v", "--verbose", action="store_true")
     p.set_defaults(func=_cmd_detect)
 

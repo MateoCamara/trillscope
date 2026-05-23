@@ -58,9 +58,6 @@ def compute_periodicity_score(
     if len(env) < 4:
         return 0.0
     env = env - env.mean()
-    denom = float(np.dot(env, env))
-    if denom <= 0:
-        return 0.0
     n = len(env)
     lag_lo = max(1, int(round(PERIOD_LAG_MIN_MS / ENV_FRAME_MS)))
     lag_hi = min(n - 1, int(round(PERIOD_LAG_MAX_MS / ENV_FRAME_MS)))
@@ -68,8 +65,14 @@ def compute_periodicity_score(
         return 0.0
     peak = 0.0
     for lag in range(lag_lo, lag_hi + 1):
-        num = float(np.dot(env[: n - lag], env[lag:]))
-        score = num / denom
+        a = env[: n - lag]
+        b = env[lag:]
+        denom_a = float(np.dot(a, a))
+        denom_b = float(np.dot(b, b))
+        if denom_a <= 0 or denom_b <= 0:
+            continue
+        # Pearson-style normalised cross-correlation: invariant to signal length.
+        score = float(np.dot(a, b)) / np.sqrt(denom_a * denom_b)
         if score > peak:
             peak = score
     return float(np.clip(peak, 0.0, 1.0))

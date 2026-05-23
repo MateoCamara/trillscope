@@ -61,6 +61,9 @@ paper/*
 # Validation artifacts (large per-token PNGs, regenerated)
 reports/validation/specs/
 
+# Local logs and scratch files
+_*.txt
+
 # Temporary/generated files
 nul
 desktop.ini
