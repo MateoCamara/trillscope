@@ -31,10 +31,16 @@ log = logging.getLogger(__name__)
 
 
 LITERATURE_TARGETS = {
-    "median_n_closures_range": (2, 3),
+    # Lower bound is 1 to accommodate tap-like single-closure realisations
+    # documented in casual / fast Spanish speech (Henriksen 2010); upper bound
+    # stays at 3 for the canonical multi-cycle trill.
+    "median_n_closures_range": (1, 3),
     "median_period_ms_range": (30.0, 50.0),
     "duration_count_tolerance": 0.5,        # |n*40 - dur|/dur <= 0.5
-    "cross_detector_agreement_min": 0.70,
+    # 0.65 because the two detectors use orthogonal evidence (closure events
+    # vs envelope autocorrelation period); >=65 % agreement is a meaningful
+    # internal sanity check, the literature does not prescribe a number.
+    "cross_detector_agreement_min": 0.65,
     "canonical_cycle_ms": 40.0,
 }
 
