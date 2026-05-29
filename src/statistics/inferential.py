@@ -12,6 +12,46 @@ from .base import TestResult, AnalysisConfig, interpret_effect_size
 logger = logging.getLogger(__name__)
 
 
+def bootstrap_median_ci(
+    values,
+    n_resamples: int = 10000,
+    seed: int = 42,
+    confidence: float = 0.95,
+) -> Tuple[float, float]:
+    """95% bootstrap confidence interval for the median.
+
+    Uses scipy.stats.bootstrap with BCa, falling back to the percentile method
+    when the jackknife is degenerate. Degeneracy is common for discrete count
+    medians such as num_cycles, where >50% of resamples return the same integer.
+    Returns a (low, high) tuple; for a constant or near-empty series both ends
+    equal the point median.
+    """
+    x = np.asarray(pd.Series(values).dropna(), dtype=float)
+    if x.size == 0:
+        return (float("nan"), float("nan"))
+    if x.size < 3 or np.unique(x).size == 1:
+        m = float(np.median(x))
+        return (m, m)
+    rng = np.random.default_rng(seed)
+    for method in ("BCa", "percentile"):
+        try:
+            ci = scipy_stats.bootstrap(
+                (x,),
+                np.median,
+                n_resamples=n_resamples,
+                confidence_level=confidence,
+                method=method,
+                random_state=rng,
+            ).confidence_interval
+            lo, hi = float(ci.low), float(ci.high)
+            if np.isfinite(lo) and np.isfinite(hi):
+                return (lo, hi)
+        except Exception:
+            continue
+    m = float(np.median(x))
+    return (m, m)
+
+
 def run_two_group_test(
     df: pd.DataFrame,
     outcome_var: str,

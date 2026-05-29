@@ -311,7 +311,10 @@ def main():
     if args.command == 'analyze':
         # Configure predictors based on factors
         if args.factors == 'all':
-            predictor_vars = ['sex', 'age_bin', 'education_bin', 'country', 'speech_style', 'context_label']
+            # country/region excluded for the v2 paper: the post-quality-filter
+            # sample is España-dominated (n~93 vs Arg/Mex/Ven n=3-6), too
+            # unbalanced for a defensible dialectal test. See plan V2.
+            predictor_vars = ['sex', 'age_bin', 'education_bin', 'speech_style', 'context_label']
         elif args.factors == 'sex':
             predictor_vars = ['sex']
         elif args.factors == 'age':
