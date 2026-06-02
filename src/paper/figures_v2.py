@@ -199,6 +199,66 @@ def fig4_robustness() -> None:
     plt.close(fig)
 
 
+def fig_graphical_abstract() -> None:
+    """Graphical abstract: on the same trill, the mid-band envelope has two
+    closures (energy minima with verified releases) but ~5 envelope peaks, and
+    the apparent male advantage that each counter implies---large and significant
+    for envelope peaks, negligible for closures."""
+    from scipy.signal import find_peaks
+    from tests.synthetic_trills import TrillSpec, synthesize_trill
+    from erres.detector import DetectorConfig, detect_closures
+
+    spec = TrillSpec(n_closures=2, duration_ms=90.0, f0_hz=140.0,
+                     period_ms=34.0, rng_seed=7)
+    audio, _gt, sr, roi = synthesize_trill(spec)
+    w = max(1, int(0.006 * sr))
+    env = np.convolve(np.abs(audio), np.ones(w) / w, mode="same")
+    t = np.arange(len(audio)) / sr * 1000.0
+    lo, hi = roi
+    m = (t >= lo - 6) & (t <= hi + 6)
+
+    pk, _ = find_peaks(env, distance=int(0.012 * sr), prominence=0.12 * float(env.max()))
+    pk_ms = pk / sr * 1000.0
+    pk_ms = pk_ms[(pk_ms >= lo) & (pk_ms <= hi)]
+    res = detect_closures(audio, sr, cfg=DetectorConfig(), roi_ms=roi)
+    clo_ms = [c.closure_t_ms for c in res.closures]
+
+    fig, (axa, axb) = plt.subplots(
+        1, 2, figsize=(5.8, 2.0), gridspec_kw={"width_ratios": [1.5, 1.0]})
+
+    axa.plot(t[m], env[m], color="#333", lw=1.4, zorder=1)
+    axa.plot(pk_ms, np.interp(pk_ms, t, env), "o", color="#d1495b", ms=6,
+             zorder=3, label=f"envelope peaks ({len(pk_ms)})")
+    axa.plot(clo_ms, np.interp(clo_ms, t, env), "v", color="#1f6fb2", ms=9,
+             zorder=4, label=f"closures ({len(clo_ms)})")
+    axa.set_title("(a) same token, two counting rules", fontsize=8.5)
+    axa.set_xlabel("time (ms)", fontsize=8)
+    axa.set_ylabel("mid-band amplitude", fontsize=8)
+    axa.set_yticks([])
+    axa.tick_params(labelsize=7)
+    axa.legend(loc="upper center", fontsize=6.8, ncol=2, frameon=False,
+               handletextpad=0.3, columnspacing=1.0)
+    axa.set_ylim(0, float(env[m].max()) * 1.32)
+
+    vals = [1.79, 0.22]
+    axb.barh([1, 0], vals, color=["#d1495b", "#1f6fb2"], height=0.6)
+    axb.text(1.79, 1, "  +1.79$^*$", va="center", fontsize=8.5)
+    axb.text(0.22, 0, "  +0.22 n.s.", va="center", fontsize=8.5)
+    axb.set_yticks([1, 0])
+    axb.set_yticklabels(["envelope-\npeak count", "closure\ncount"], fontsize=7.5)
+    axb.set_xlim(0, 2.7)
+    axb.set_xlabel("apparent male advantage\n(events)", fontsize=7.5)
+    axb.set_title("(b) decides the sex result", fontsize=8.5)
+    axb.tick_params(labelsize=7)
+    axb.spines[["top", "right"]].set_visible(False)
+
+    fig.suptitle("The counted unit decides the sociophonetic conclusion",
+                 fontsize=9.5, y=1.02)
+    fig.tight_layout()
+    fig.savefig(FIG / "fig_summary.png")
+    plt.close(fig)
+
+
 def main() -> None:
     FIG.mkdir(parents=True, exist_ok=True)
     df = _tokens()
@@ -206,7 +266,8 @@ def main() -> None:
     fig2_context(df)
     fig3_effect_sizes(df)
     fig4_robustness()
-    print("Wrote fig1_spectrogram, fig2_context, fig3_effect_sizes, fig4_robustness to", FIG)
+    fig_graphical_abstract()
+    print("Wrote fig1_spectrogram, fig2_context, fig3_effect_sizes, fig4_robustness, fig_summary to", FIG)
 
 
 if __name__ == "__main__":

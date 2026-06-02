@@ -311,7 +311,11 @@ def gen_cv_examples(n_per_ctx: int = 2) -> list[dict]:
 
 def copy_static_figures() -> dict:
     """Copy paper figure, contact sheets and histograms into assets/img."""
-    got = {"effect": None, "contacts": [], "hists": []}
+    got = {"effect": None, "contacts": [], "hists": [], "summary": None}
+    summ = FIGS / "fig_summary.png"
+    if summ.exists():
+        shutil.copy(summ, IMG / "fig_summary.png")
+        got["summary"] = "fig_summary.png"
     fig3 = FIGS / "fig3_effect_sizes.png"
     if fig3.exists():
         shutil.copy(fig3, IMG / "fig3_effect_sizes.png")
@@ -426,9 +430,17 @@ def build_html(ctx: dict) -> str:
 </header>
 <main>
 
+<figure style="margin:0 0 22px;text-align:center">
+{_img(ctx['figs']['summary']) if ctx['figs'].get('summary') else ''}
+<figcaption class="mut small">Graphical abstract — on the same trill, the mid-band
+envelope has two closures but ~5 envelope peaks; the envelope-peak count invents a
+male advantage (+1.79, p&lt;10⁻⁹) that vanishes when closures are counted (+0.22, n.s.).</figcaption>
+</figure>
+
 <section id="overview"><h2>1 · What this is</h2>
-<p>We measure the Spanish trill /r/ by counting <b>closures</b> (occlusion–release
-events) directly, instead of counting peaks of a rectified amplitude envelope.
+<p>We measure the Spanish trill /r/ by counting <b>closures</b> (the occlusion
+event, a mid-band energy minimum with a verified release) directly, instead of
+counting peaks of a rectified amplitude envelope.
 Across <b>3,560 tokens</b> from <b>356 speakers</b> in <b>six corpora</b>, the trill
 has a median of <b>two closures</b> and an inter-closure period near <b>36&nbsp;ms</b>.
 Phonotactic context is the only factor with a robust, medium effect; speaker sex
