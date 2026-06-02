@@ -131,6 +131,14 @@ def run_dataset(
     df = df[df["duration_ms"] > 0].copy()
     if "alignment_source" in df.columns:
         df = df[df["alignment_source"] != "orthographic"]
+    # r_candidates from src/extraction contains exact-duplicate rows for some
+    # corpora (ALBAYZIN every token twice, DIMEx100 more), so detect each token
+    # once. (utt_id, start_ms, end_ms) uniquely identifies a token.
+    before_dedup = len(df)
+    df = df.drop_duplicates(["utt_id", "start_ms", "end_ms"]).reset_index(drop=True)
+    if len(df) != before_dedup:
+        log.info("dropped %d duplicate candidate rows", before_dedup - len(df))
+
     n_timed = len(df)
     log.info("%s: %d/%d tokens have valid timing", candidates_path.name, n_timed, n_total)
 

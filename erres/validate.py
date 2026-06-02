@@ -206,6 +206,12 @@ def run_dataset(
 ) -> ValidationResult:
     closures = pd.read_parquet(closures_path)
     xval = pd.read_parquet(xval_path)
+    # Drop exact-duplicate token rows inherited from r_candidates (ALBAYZIN,
+    # DIMEx100) so token counts and agreement match the analysis set (the v1->v2
+    # bridge already de-duplicates). A token is unique on (utt_id, start, end).
+    _keys = ["utt_id", "start_ms", "end_ms"]
+    closures = closures.drop_duplicates(_keys).reset_index(drop=True)
+    xval = xval.drop_duplicates(_keys).reset_index(drop=True)
     result = validate(dataset, closures, xval)
     hist_path = reports_dir / f"{dataset}_hist.png"
     render_histograms(closures, dataset, hist_path)
