@@ -196,6 +196,40 @@ def gen_excess_scatter() -> dict:
     return {"png": "excess_vs_f0.png", "rho": round(float(rho), 2), "n": int(len(d))}
 
 
+def gen_sample_sizes() -> dict:
+    """Per-cell token/speaker counts (context x corpus, sex x context) -- the
+    post-filter balance, kept out of the 5-page paper."""
+    from erres.mechanism_sex import _load_tokens
+    tok = _load_tokens()
+    CTX = ["intervocalic_rr", "after_nls", "word_initial"]
+    tok = tok[tok["context_label"].isin(CTX)]
+    DS = ["tedx", "heroico", "glissando", "dimex100", "albayzin", "preseea"]
+    th = "".join(f"<th>{c.replace('_', ' ')}</th>" for c in CTX)
+
+    body = ""
+    for ds in DS:
+        d = tok[tok["dataset"] == ds]
+        cells = "".join(f"<td>{int((d['context_label'] == c).sum())}</td>" for c in CTX)
+        body += f"<tr><td>{ds}</td>{cells}<td>{len(d)}</td></tr>"
+    tot = "".join(f"<td><b>{int((tok['context_label'] == c).sum())}</b></td>" for c in CTX)
+    body += f"<tr><td><b>Total</b></td>{tot}<td><b>{len(tok)}</b></td></tr>"
+    t_corpus = (f"<table><thead><tr><th>corpus</th>{th}<th>all</th></tr></thead>"
+                f"<tbody>{body}</tbody></table>")
+
+    sx = tok[tok["sex"].isin(["F", "M"])]
+    body2 = ""
+    for s in ("F", "M"):
+        d = sx[sx["sex"] == s]
+        cells = ""
+        for c in CTX:
+            dc = d[d["context_label"] == c]
+            cells += f"<td>{len(dc)} ({dc['speaker_id'].nunique()})</td>"
+        body2 += f"<tr><td>{s}</td>{cells}</tr>"
+    t_sex = (f"<table><thead><tr><th>sex</th>{th}</tr></thead>"
+             f"<tbody>{body2}</tbody></table>")
+    return {"corpus": t_corpus, "sex": t_sex}
+
+
 def gen_cv_examples(n_per_ctx: int = 2) -> list[dict]:
     """Export a few clean Common Voice (CC0) trill clips: audio + spectrogram."""
     cand = TABLES / "r_candidates_commonvoice.parquet"
@@ -425,9 +459,15 @@ means they disagree.</p>
 <th>Period (ms)</th><th>Agree.</th></tr></thead><tbody>{valid_rows}</tbody></table>
 <div class="grid">{contact_gallery()}</div></section>
 
-<section id="corpora"><h2>6 · Corpora</h2>
+<section id="corpora"><h2>6 · Corpora &amp; sample sizes</h2>
 <table><thead><tr><th>Dataset</th><th>Speakers</th><th>Tokens</th>
-<th>Region</th><th>Style</th></tr></thead><tbody>{corpora_rows}</tbody></table></section>
+<th>Region</th><th>Style</th></tr></thead><tbody>{corpora_rows}</tbody></table>
+<p class="mut small">Post-filter token counts per cell (the balance behind the
+context analysis; word-initial is the smallest cell).</p>
+<h3>Tokens per context × corpus</h3>
+{ctx['sizes']['corpus']}
+<h3>Tokens (speakers) per sex × context</h3>
+{ctx['sizes']['sex']}</section>
 
 <section id="repro"><h2>7 · Reproducibility</h2>
 <p>The pipeline is deterministic and reproducible from the candidate token tables
@@ -455,6 +495,8 @@ def main() -> None:
     mech = gen_mechanism_demo()
     log.info("· excess~F0 scatter (real data)")
     scatter = gen_excess_scatter()
+    log.info("· per-cell sample sizes")
+    sizes = gen_sample_sizes()
     log.info("· Common Voice examples")
     cv = gen_cv_examples()
     log.info("· static figures / contact sheets")
@@ -490,7 +532,7 @@ def main() -> None:
 
     html_str = build_html({
         "canonical": canonical, "mech": mech, "scatter": scatter, "cv": cv,
-        "figs": figs, "ctx_cross": ctx_cross,
+        "figs": figs, "ctx_cross": ctx_cross, "sizes": sizes,
         "corpora_table": corpora_table, "valid_table": valid_table,
     })
     (SUP / "index.html").write_text(html_str, encoding="utf-8")
