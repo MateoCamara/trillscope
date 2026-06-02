@@ -230,6 +230,38 @@ def gen_sample_sizes() -> dict:
     return {"corpus": t_corpus, "sex": t_sex}
 
 
+def gen_retention() -> dict:
+    """Retained vs candidate counts (per corpus + per context) -- how selective
+    the quality filter is."""
+    DS = ["tedx", "heroico", "glissando", "dimex100", "albayzin", "preseea"]
+    LABEL = {"tedx": "TEDx", "heroico": "Heroico", "glissando": "Glissando",
+             "dimex100": "DIMEx100", "albayzin": "ALBAYZIN", "preseea": "PRESEEA"}
+    tok = pd.read_parquet(TABLES / "tokens.parquet").copy()
+    ccol = "corpus" if "corpus" in tok.columns else "dataset"
+    xcol = "context" if "context" in tok.columns else "context_label"
+    tok["_ds"] = tok[ccol].str.lower()
+    key = ["dataset", "utt_id", "start_ms", "end_ms"]
+    ret = pd.concat([pd.read_parquet(TABLES / f"closures_v2_{d}.parquet") for d in DS],
+                    ignore_index=True).drop_duplicates(key)
+
+    def row(name, cand, kept):
+        pct = 100 * kept / cand if cand else 0
+        return f"<tr><td>{name}</td><td>{cand}</td><td>{kept}</td><td>{pct:.1f}%</td></tr>"
+
+    body = "".join(row(LABEL[d], int((tok["_ds"] == d).sum()),
+                       int((ret["dataset"] == d).sum())) for d in DS)
+    body += row("<b>Total</b>", len(tok), len(ret)).replace("<td>", "<td><b>").replace("</td>", "</b></td>")
+    t_corpus = (f"<table><thead><tr><th>corpus</th><th>candidates</th>"
+                f"<th>retained</th><th>%</th></tr></thead><tbody>{body}</tbody></table>")
+
+    CTX = ["intervocalic_rr", "after_nls", "word_initial"]
+    body2 = "".join(row(c.replace("_", " "), int((tok[xcol] == c).sum()),
+                        int((ret["context_label"] == c).sum())) for c in CTX)
+    t_ctx = (f"<table><thead><tr><th>context</th><th>candidates</th>"
+             f"<th>retained</th><th>%</th></tr></thead><tbody>{body2}</tbody></table>")
+    return {"corpus": t_corpus, "context": t_ctx}
+
+
 def gen_cv_examples(n_per_ctx: int = 2) -> list[dict]:
     """Export a few clean Common Voice (CC0) trill clips: audio + spectrogram."""
     cand = TABLES / "r_candidates_commonvoice.parquet"
@@ -467,7 +499,13 @@ context analysis; word-initial is the smallest cell).</p>
 <h3>Tokens per context × corpus</h3>
 {ctx['sizes']['corpus']}
 <h3>Tokens (speakers) per sex × context</h3>
-{ctx['sizes']['sex']}</section>
+{ctx['sizes']['sex']}
+<h3>Quality-filter retention (candidates → retained)</h3>
+<p class="mut small">The filter keeps 21% of candidates overall but very little of
+the read/lab-heavy material (DIMEx100 1.3%): the analysed set is clean, periodic
+trill realisations, not all expected /r/ contexts.</p>
+{ctx['retention']['corpus']}
+{ctx['retention']['context']}</section>
 
 <section id="repro"><h2>7 · Reproducibility</h2>
 <p>The pipeline is deterministic and reproducible from the candidate token tables
@@ -497,6 +535,8 @@ def main() -> None:
     scatter = gen_excess_scatter()
     log.info("· per-cell sample sizes")
     sizes = gen_sample_sizes()
+    log.info("· filter retention")
+    retention = gen_retention()
     log.info("· Common Voice examples")
     cv = gen_cv_examples()
     log.info("· static figures / contact sheets")
@@ -532,7 +572,7 @@ def main() -> None:
 
     html_str = build_html({
         "canonical": canonical, "mech": mech, "scatter": scatter, "cv": cv,
-        "figs": figs, "ctx_cross": ctx_cross, "sizes": sizes,
+        "figs": figs, "ctx_cross": ctx_cross, "sizes": sizes, "retention": retention,
         "corpora_table": corpora_table, "valid_table": valid_table,
     })
     (SUP / "index.html").write_text(html_str, encoding="utf-8")
