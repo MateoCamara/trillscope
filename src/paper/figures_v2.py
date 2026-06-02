@@ -121,7 +121,7 @@ def fig3_effect_sizes(df: pd.DataFrame) -> None:
     from scipy import stats as ss
     spk = _aggregate_by_speaker(df, include_context=False)
     sc = _aggregate_by_speaker(df, include_context=True)
-    measures = [("num_cycles", "Closures"), ("cycle_rate_hz", "Cycle rate"), ("duration_ms", "Duration")]
+    measures = [("num_cycles", "Closures"), ("cycle_rate_hz", "Closure rate"), ("duration_ms", "Duration")]
     preds = [("context_label", "Context", sc), ("speech_style", "Style", spk),
              ("age_bin", "Age", spk), ("education_bin", "Educ.", spk), ("sex", "Sex", spk)]
     nrow, ncol = len(measures), len(preds)
