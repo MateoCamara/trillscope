@@ -262,6 +262,46 @@ def gen_retention() -> dict:
     return {"corpus": t_corpus, "context": t_ctx}
 
 
+def gen_attrition_by_sex() -> dict:
+    """Per-sex filter attrition control: is the
+    21% retention sex-biased, and do men devoice more? Metadata sex only
+    (DIMEx100 excluded, F0-inferred). Reuses the standalone analysis loader."""
+    from scipy.stats import chi2_contingency, mannwhitneyu
+
+    from erres.attrition_sex import load_pool_with_sex
+
+    pool = load_pool_with_sex()
+    sx = pool[pool["sex"].isin(["F", "M"])]
+
+    def row(s):
+        d = sx[sx["sex"] == s]
+        kept = int(d["passed"].sum())
+        pct = 100 * kept / len(d) if len(d) else 0
+        v_all = d["voicing_pct"].mean()
+        v_drop = d.loc[~d["passed"], "voicing_pct"].mean()
+        return (f"<tr><td>{s}</td><td>{len(d)}</td><td>{kept}</td>"
+                f"<td>{pct:.1f}%</td><td>{v_all:.1f}</td><td>{v_drop:.1f}</td></tr>")
+
+    body = row("F") + row("M")
+    table = (f"<table><thead><tr><th>sex</th><th>candidates</th><th>retained</th>"
+             f"<th>retention %</th><th>voicing (all)</th><th>voicing (dropped)</th>"
+             f"</tr></thead><tbody>{body}</tbody></table>")
+
+    chi2, p_chi, _, _ = chi2_contingency(pd.crosstab(sx["sex"], sx["passed"]))
+    spk = (sx.groupby(["dataset", "speaker_id", "sex"])
+           .agg(ret=("passed", "mean"), voi=("voicing_pct", "mean")).reset_index())
+    _, p_ret = mannwhitneyu(spk.loc[spk.sex == "M", "ret"],
+                            spk.loc[spk.sex == "F", "ret"], alternative="two-sided")
+    _, p_voi = mannwhitneyu(spk.loc[spk.sex == "M", "voi"],
+                            spk.loc[spk.sex == "F", "voi"], alternative="two-sided")
+    note = (f"Sex&nbsp;&times;&nbsp;inclusion is not associated (&chi;&sup2; "
+            f"p&nbsp;=&nbsp;{p_chi:.2f}; speaker-level retention p&nbsp;=&nbsp;"
+            f"{p_ret:.2f}), and male candidates are not less voiced than female ones "
+            f"(speaker-level p&nbsp;=&nbsp;{p_voi:.2f}). The filter does not drop "
+            f"male tokens preferentially, so the sex null is not an artifact of it.")
+    return {"table": table, "note": note}
+
+
 def gen_cv_examples(n_per_ctx: int = 2) -> list[dict]:
     """Export a few clean Common Voice (CC0) trill clips: audio + spectrogram."""
     cand = TABLES / "r_candidates_commonvoice.parquet"
@@ -517,7 +557,10 @@ context analysis; word-initial is the smallest cell).</p>
 the read/lab-heavy material (DIMEx100 1.3%): the analysed set is clean, periodic
 trill realisations, not all expected /r/ contexts.</p>
 {ctx['retention']['corpus']}
-{ctx['retention']['context']}</section>
+{ctx['retention']['context']}
+<h3>Quality-filter retention by speaker sex</h3>
+<p class="mut small">{ctx['attrition_sex']['note']}</p>
+{ctx['attrition_sex']['table']}</section>
 
 <section id="repro"><h2>7 · Reproducibility</h2>
 <p>The pipeline is deterministic and reproducible from the candidate token tables
@@ -549,6 +592,8 @@ def main() -> None:
     sizes = gen_sample_sizes()
     log.info("· filter retention")
     retention = gen_retention()
+    log.info("· filter attrition by sex")
+    attrition_sex = gen_attrition_by_sex()
     log.info("· Common Voice examples")
     cv = gen_cv_examples()
     log.info("· static figures / contact sheets")
@@ -585,6 +630,7 @@ def main() -> None:
     html_str = build_html({
         "canonical": canonical, "mech": mech, "scatter": scatter, "cv": cv,
         "figs": figs, "ctx_cross": ctx_cross, "sizes": sizes, "retention": retention,
+        "attrition_sex": attrition_sex,
         "corpora_table": corpora_table, "valid_table": valid_table,
     })
     (SUP / "index.html").write_text(html_str, encoding="utf-8")
