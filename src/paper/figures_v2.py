@@ -223,22 +223,26 @@ def fig_graphical_abstract() -> None:
     res = detect_closures(audio, sr, cfg=DetectorConfig(), roi_ms=roi)
     clo_ms = [c.closure_t_ms for c in res.closures]
 
+    # Stacked single-column layout: each panel spans the full column width, so
+    # both render larger than the old side-by-side version (which was squeezed
+    # to ~59%). Headline lives in the caption; the y-headroom keeps the legend
+    # clear of the envelope-peak markers (which it used to overlap).
     fig, (axa, axb) = plt.subplots(
-        1, 2, figsize=(5.8, 2.0), gridspec_kw={"width_ratios": [1.5, 1.0]})
+        2, 1, figsize=(3.5, 2.55), gridspec_kw={"height_ratios": [1.45, 1.0]})
 
-    axa.plot(t[m], env[m], color="#333", lw=1.4, zorder=1)
-    axa.plot(pk_ms, np.interp(pk_ms, t, env), "o", color="#d1495b", ms=6,
+    axa.plot(t[m], env[m], color="#333", lw=1.3, zorder=1)
+    axa.plot(pk_ms, np.interp(pk_ms, t, env), "o", color="#d1495b", ms=5.5,
              zorder=3, label=f"envelope peaks ({len(pk_ms)})")
-    axa.plot(clo_ms, np.interp(clo_ms, t, env), "v", color="#1f6fb2", ms=9,
+    axa.plot(clo_ms, np.interp(clo_ms, t, env), "v", color="#1f6fb2", ms=8,
              zorder=4, label=f"closures ({len(clo_ms)})")
     axa.set_title("(a) same token, two counting rules", fontsize=8.5)
     axa.set_xlabel("time (ms)", fontsize=8)
-    axa.set_ylabel("mid-band amplitude", fontsize=8)
+    axa.set_ylabel("mid-band\namplitude", fontsize=8)
     axa.set_yticks([])
     axa.tick_params(labelsize=7)
-    axa.legend(loc="upper center", fontsize=6.8, ncol=2, frameon=False,
-               handletextpad=0.3, columnspacing=1.0)
-    axa.set_ylim(0, float(env[m].max()) * 1.32)
+    axa.set_ylim(0, float(env[m].max()) * 1.5)
+    axa.legend(loc="upper center", fontsize=7.5, ncol=2, frameon=False,
+               handletextpad=0.3, columnspacing=1.2)
 
     vals = [1.79, 0.22]
     axb.barh([1, 0], vals, color=["#d1495b", "#1f6fb2"], height=0.6)
@@ -246,14 +250,12 @@ def fig_graphical_abstract() -> None:
     axb.text(0.22, 0, "  +0.22 n.s.", va="center", fontsize=8.5)
     axb.set_yticks([1, 0])
     axb.set_yticklabels(["envelope-\npeak count", "closure\ncount"], fontsize=7.5)
-    axb.set_xlim(0, 2.7)
-    axb.set_xlabel("apparent male advantage\n(events)", fontsize=7.5)
+    axb.set_xlim(0, 2.9)
+    axb.set_xlabel("apparent male advantage (events)", fontsize=8)
     axb.set_title("(b) decides the sex result", fontsize=8.5)
     axb.tick_params(labelsize=7)
     axb.spines[["top", "right"]].set_visible(False)
 
-    fig.suptitle("The counted unit decides the sociophonetic conclusion",
-                 fontsize=9.5, y=1.02)
     fig.tight_layout()
     fig.savefig(FIG / "fig_summary.png")
     plt.close(fig)
