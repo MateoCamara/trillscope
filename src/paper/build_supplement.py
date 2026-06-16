@@ -188,9 +188,9 @@ def gen_excess_scatter() -> dict:
     z = np.polyfit(d["mean_f0_hz"], d["excess"], 1)
     xs = np.linspace(d["mean_f0_hz"].min(), d["mean_f0_hz"].max(), 50)
     ax.plot(xs, np.polyval(z, xs), color="black", lw=1.5)
-    ax.set_xlabel("per-token mean $F_0$ (Hz)")
+    ax.set_xlabel("per-token mean $f_0$ (Hz)")
     ax.set_ylabel("over-count  (envelope-peak − closure)")
-    ax.set_title(f"Over-count rises as $F_0$ falls   (Spearman ρ = {rho:.2f})", fontsize=10)
+    ax.set_title(f"Over-count rises as $f_0$ falls   (Spearman ρ = {rho:.2f})", fontsize=10)
     ax.legend(fontsize=8)
     fig.tight_layout(); fig.savefig(IMG / "excess_vs_f0.png", dpi=120); plt.close(fig)
     return {"png": "excess_vs_f0.png", "rho": round(float(rho), 2), "n": int(len(d))}
@@ -439,7 +439,7 @@ def build_html(ctx: dict) -> str:
     def hear_audio():
         return "".join(
             f'<div class="card"><b>{h["tag"]}-pitch trill</b>'
-            f'<span class="mut small"> · F₀ ≈ {h["f0"]} Hz · identical 2-closure structure</span>'
+            f'<span class="mut small"> · f₀ ≈ {h["f0"]} Hz · identical 2-closure structure</span>'
             f'{_audio(h["wav"])}</div>' for h in ctx["mech"]["hear"])
 
     def contact_gallery():
@@ -464,7 +464,7 @@ def build_html(ctx: dict) -> str:
 <header>
   <h1>Spanish Trill Production: A Multi-Corpus Acoustic Study</h1>
   <p>Supplementary material — listen to trill examples and see the
-  closure-vs-envelope-peak distinction, the F₀ mechanism, the phonotactic-context
+  closure-vs-envelope-peak distinction, the f₀ mechanism, the phonotactic-context
   effect, and per-corpus validation.</p>
   <div class="badge">Anonymous submission · supplementary site</div>
 </header>
@@ -502,10 +502,10 @@ closure detector finds <b>{ctx['mech']['n_v2']}</b> closures (blue), while an
 envelope-peak counter marks <b>{ctx['mech']['n_peaks']}</b> peaks (red dotted).</p>
 {_img(ctx['mech']['png'])}{_audio(ctx['mech']['wav'])}
 <h3>Why this creates a spurious sex effect</h3>
-<p>The size of that over-count depends on F₀ and harmonic density — and therefore on
-speaker sex. On the real tokens, the per-token over-count <b>rises as F₀ falls</b>
+<p>The size of that over-count depends on f₀ and harmonic density — and therefore on
+speaker sex. On the real tokens, the per-token over-count <b>rises as f₀ falls</b>
 (Spearman ρ = {ctx['scatter']['rho']}, n = {ctx['scatter']['n']}). The envelope-peak
-count is F₀-dependent; the closure count is not.</p>
+count is f₀-dependent; the closure count is not.</p>
 <div class="two">
   <div>{_img(ctx['scatter']['png'])}</div>
   <div><table><thead><tr><th>measure</th><th>F</th><th>M</th><th>M−F</th></tr></thead>
@@ -518,7 +518,7 @@ count is F₀-dependent; the closure count is not.</p>
   +1.58 of the +1.79 gap, so the apparent sex effect is a counting artifact.</p></div>
 </div>
 <h3>Hear a low- and a high-pitched trill</h3>
-<p class="mut small">Identical 2-closure structure, different F₀ — the closure count
+<p class="mut small">Identical 2-closure structure, different f₀ — the closure count
 should be the same for both.</p>
 <div class="grid">{hear_audio()}</div></section>
 
@@ -528,7 +528,7 @@ post-/n,l,s/) show more. The independent autocorrelation cross-detector reproduc
 this ranking exactly and counts intervocalic trills <i>higher</i>
 ({ctx['ctx_cross']}), so the effect is not a closure-detection artifact.</p>
 {effect_img}
-<p class="mut small">Kruskal–Wallis ε² for every predictor on closure count, cycle
+<p class="mut small">Kruskal–Wallis ε² for every predictor on closure count, closure
 rate and duration, on one scale. Context is the only predictor reaching a medium
 effect; sex is negligible. Non-significant cells (after Bonferroni) are hatched.</p>
 <h3>Context examples (Common Voice, CC0)</h3>
@@ -567,8 +567,9 @@ trill realisations, not all expected /r/ contexts.</p>
 plus the source audio. The closure detector, the fixed quality filter
 (duration ∈ [50, 200] ms, voicing ≥ 80 %, envelope-periodicity ≥ 0.40), and the
 independent period cross-detector are all released with the code.</p>
-<p>Code and full instructions: <a href="REPO_URL_PLACEHOLDER">[anonymized repository]</a>
-&nbsp;<span class="mut small">(replace this link before upload).</span></p>
+<p>The complete pipeline — the closure detector, the fixed quality filter, the
+independent period cross-detector, and the test suite — is provided as an
+accompanying anonymous code archive submitted alongside this paper.</p>
 <p class="mut small">This page contains no author-identifying information.</p></section>
 
 </main>

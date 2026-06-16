@@ -7,9 +7,10 @@ corpora:
     role: "primary"
     weight_in_aggregate: "natural"     # also reported with corpus-equal weights
     notes: |
-      Largest contributor (75.7% of tokens). Reports require dual presentation:
-      (1) full sample, (2) DIMEx100 excluded for sensitivity. Sex labels must
-      come from the documented Pineda 2004 49M/51F split, not from F0 inference.
+      Read corpus with native .phn alignment. The periodicity quality filter
+      removes the large majority of its tokens, so in the analysed set it is a
+      minor contributor (~2.3%). Excluded from sex comparisons: it has no sex
+      metadata, and F0-inferred sex would be circular for F0-linked measures.
 
   ALBAYZIN:
     include: true
