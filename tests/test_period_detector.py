@@ -5,9 +5,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from erres.detector import detect_n_closures_by_period
-
-from .synthetic_trills import TrillSpec, synthesize_trill
+from trillscope.detector import detect_n_closures_by_period
+from trillscope.synthetic import TrillSpec, synthesize_trill
 
 
 @pytest.mark.parametrize("n", [2, 3, 4, 5])

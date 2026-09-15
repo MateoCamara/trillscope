@@ -9,8 +9,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from erres.detector import DetectorConfig, detect_closures
-from tests.synthetic_trills import TrillSpec, synthesize_trill
+from trillscope.detector import DetectorConfig, detect_closures
+from trillscope.synthetic import TrillSpec, synthesize_trill
 
 
 # Match ground truth closure to detected closure with this tolerance
