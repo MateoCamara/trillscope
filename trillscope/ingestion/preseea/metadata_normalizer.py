@@ -167,7 +167,7 @@ class PreseeaMetadataNormalizer:
         Extract metadata from PRESEEA filename pattern.
 
         Pattern: {CITY}_{SEX}{AGE}{EDU}_{ID}.{ext}
-        Example: ALCA_H11_037 -> city=ALCA, sex=H, age_group=1, edu=1, id=037
+        Example: CITY_H11_001 -> city=CITY, sex=H, age_group=1, edu=1, id=001
 
         Args:
             filename: Filename with or without extension

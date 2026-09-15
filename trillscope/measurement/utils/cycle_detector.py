@@ -441,7 +441,7 @@ def detect_trill_cycles(
             smoothing_ms=3.0,
         )
     else:
-        count_c, period_ms, acf_height = 0, 0.0, 0.0
+        count_c, _period_ms, acf_height = 0, 0.0, 0.0
 
     # Consensus
     num_cycles, intervals, regularity, confidence = _consensus(

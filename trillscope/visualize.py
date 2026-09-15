@@ -3,7 +3,7 @@
 `render_token_spectrogram` writes one PNG per token (audio waveform + 0–5 kHz
 spectrogram, with the trill ROI highlighted). `make_contact_sheet` tiles the
 PNGs of a corpus into a single grid, colouring each cell's border green if
-the v2 detector and the period detector agree (|Δn|≤1), red otherwise.
+the closure detector and the period detector agree (|Δn|≤1), red otherwise.
 
 This module is the visual companion of `trillscope.validate` — it produces no
 filtering decisions, only documentation.
@@ -123,7 +123,7 @@ def render_corpus_specs(
             n_p_str = "?" if pd.isna(n_p) else f"{int(n_p)}"
             title = (
                 f"{row['utt_id']}  |  dur={t1 - t0:.0f} ms  "
-                f"v2={n_v2}  period={n_p_str}"
+                f"closures={n_v2}  period={n_p_str}"
             )
             token_id = f"{row['dataset']}-{row['utt_id']}-{int(t0)}"
             out_png = specs_dir / f"{token_id}.png"

@@ -1,4 +1,4 @@
-"""Command-line interface for acoustic measurement (Block G)."""
+"""Command-line interface for acoustic measurement."""
 
 import argparse
 import logging
@@ -43,7 +43,7 @@ def measure_dataset(
 
     if not candidates_path.exists():
         logger.warning(f"{dataset} candidates not found at {candidates_path}")
-        logger.warning(f"Run Block F extraction first: python -m trillscope.extraction.cli extract {dataset}")
+        logger.warning(f"Run extraction first: python -m trillscope.extraction.cli extract {dataset}")
         return None
 
     if dataset == 'dimex100':
@@ -114,7 +114,7 @@ def show_config():
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
-        description='Acoustic measurement for trill /r/ tokens (Block G)',
+        description='Acoustic measurement for trill /r/ tokens',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:

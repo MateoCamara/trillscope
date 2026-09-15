@@ -356,8 +356,8 @@ def run_mixed_effects_tests(
     """
     Run mixed-effects linear models with speaker as random effect.
 
-    This is the A2 ablation study comparing token-level analysis
-    with speaker-level aggregated analysis.
+    Complements the speaker-level aggregated tests with a token-level
+    analysis of the same outcomes and predictors.
 
     Args:
         df: Token-level data DataFrame (not aggregated)

@@ -355,7 +355,7 @@ class PreseeaIngestor(DatasetIngestor):
         report.add_transcript_analysis(
             format_type='XML (PRESEEA custom with <Trans>, <Datos>, <Hablantes> tags)',
             encoding_stats=dict(transcript_info['encodings']),
-            linking_method='Filename stem matching (ALCA_H11_037.mp3 ↔ ALCA_H11_037.txt)',
+            linking_method='Filename stem matching (CITY_H11_001.mp3 ↔ CITY_H11_001.txt)',
             coverage_percent=coverage,
             special_markers={
                 'with_speakers': transcript_info['with_speakers'],

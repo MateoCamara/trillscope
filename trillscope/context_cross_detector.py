@@ -3,15 +3,16 @@ the primary detector's per-context closure-count ranking?
 
 The paper's second main finding is that phonotactic context modulates closure
 count, with intervocalic /rr/ showing the FEWEST closures and onset trills more.
-A stated caveat (sections/07_discussion.tex) is that intervocalic trills are fully
-voiced and vowel-flanked, so their mid-band closure minima are shallower and may be
-under-detected by the *primary* closure detector -- which could partly manufacture
+A caveat discussed in the paper is that intervocalic trills are fully voiced and
+vowel-flanked, so their mid-band closure minima are shallower and may be
+under-detected by the *primary* closure detector, which could partly produce
 the effect.
 
-This script answers the caveat with data already on disk. The cross-detector
-(trillscope/detector/period_detector.py) counts closures purely by autocorrelation
-periodicity, not by minima depth, so if it reproduces the same context ranking the
-effect is not a primary-detector artifact. Both counts live, per token, in
+This script tests that possibility on the existing cross-validation tables. The
+cross-detector (trillscope/detector/period_detector.py) counts closures purely by
+autocorrelation periodicity, not by minima depth, so if it reproduces the same
+context ranking the effect is not a primary-detector artifact. Both counts live,
+per token, in
 outputs/tables/cross_validation_<corpus>.parquet (columns n_closures_v2 and
 n_closures_period), tagged with context_label -- no join needed.
 
@@ -165,12 +166,13 @@ def main() -> None:
         f"{'**identical**' if same_rank else 'different'} "
         f"({' < '.join(_ranking(prim_sxc))}), and intervocalic is the fewest under "
         f"{'**both**' if iv_lowest_both else 'only one'} detectors. The cross-detector, "
-        f"which counts by periodicity rather than minima depth, in fact counts intervocalic "
-        f"trills *higher* than the primary detector "
-        f"({cross_sxc['intervocalic_rr']:.2f} vs {prim_sxc['intervocalic_rr']:.2f}), so the "
-        f"ranking cannot be explained by intervocalic closure under-detection. The pattern is "
-        f"carried by the large spontaneous corpora (glissando, tedx); small corpora have tiny "
-        f"per-context cells and are individually noisy in both detectors.\n")
+        f"which counts by periodicity rather than minima depth, gives a mean intervocalic "
+        f"count of {cross_sxc['intervocalic_rr']:.2f} versus "
+        f"{prim_sxc['intervocalic_rr']:.2f} for the primary detector; a cross-detector count "
+        f"at or above the primary count indicates that the ranking is not explained by "
+        f"intervocalic closure under-detection. The pattern is carried by the large "
+        f"spontaneous corpora (glissando, tedx); small corpora have few tokens per context "
+        f"cell and are individually noisy in both detectors.\n")
 
     pd.DataFrame(rows).to_csv(OUT_CSV, index=False)
     OUT_MD.write_text("\n".join(lines), encoding="utf-8")

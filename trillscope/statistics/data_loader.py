@@ -245,7 +245,7 @@ def _merge_preseea(
 ) -> pd.DataFrame:
     """Merge PRESEEA measurements with metadata on utt_id."""
     # Extract base utt_id from segmented IDs
-    # PRE_ALCA_H11_037_seg001 -> PRE_ALCA_H11_037
+    # PRE_CITY_H11_001_seg001 -> PRE_CITY_H11_001
     measurements = measurements.copy()
 
     def extract_base_utt_id(utt_id: str) -> str:

@@ -97,7 +97,9 @@ def fig2_context(df: pd.DataFrame) -> None:
             v = sc.loc[sc.context_label == c, col].dropna()
             m = float(v.median())
             lo, hi = bootstrap_median_ci(v)
-            meds.append(m); los.append(m - lo); his.append(hi - m)
+            meds.append(m)
+            los.append(m - lo)
+            his.append(hi - m)
         ax.errorbar(range(3), meds, yerr=[los, his], fmt="o", capsize=4,
                     color="#3C5488", ms=6, lw=1.3)
         ax.set_xticks(range(3))
@@ -137,7 +139,8 @@ def fig3_effect_sizes(df: pd.DataFrame) -> None:
             if len(groups) < 2:
                 continue
             H, p = ss.kruskal(*groups)
-            k = len(groups); n = int(sum(len(g) for g in groups))
+            k = len(groups)
+            n = int(sum(len(g) for g in groups))
             M[i, j] = max(0.0, (H - k + 1) / (n - k))
             pval[i, j] = p
     sig = np.zeros((nrow, ncol), dtype=bool)
@@ -149,8 +152,10 @@ def fig3_effect_sizes(df: pd.DataFrame) -> None:
 
     fig, ax = plt.subplots(figsize=(5.4, 2.8))
     im = ax.imshow(M, cmap="viridis", vmin=0, vmax=0.14, aspect="auto")
-    ax.set_xticks(range(ncol)); ax.set_xticklabels([p[1] for p in preds])
-    ax.set_yticks(range(nrow)); ax.set_yticklabels([m[1] for m in measures])
+    ax.set_xticks(range(ncol))
+    ax.set_xticklabels([p[1] for p in preds])
+    ax.set_yticks(range(nrow))
+    ax.set_yticklabels([m[1] for m in measures])
     for i in range(nrow):
         for j in range(ncol):
             if np.isnan(M[i, j]):
@@ -170,8 +175,10 @@ def fig3_effect_sizes(df: pd.DataFrame) -> None:
 
 def _heat(ax, piv, title, cmap, vmin, vmax, fmt):
     im = ax.imshow(piv.values, aspect="auto", origin="lower", cmap=cmap, vmin=vmin, vmax=vmax)
-    ax.set_xticks(range(len(piv.columns))); ax.set_xticklabels([f"{c:g}" for c in piv.columns])
-    ax.set_yticks(range(len(piv.index))); ax.set_yticklabels([f"{r:g}" for r in piv.index])
+    ax.set_xticks(range(len(piv.columns)))
+    ax.set_xticklabels([f"{c:g}" for c in piv.columns])
+    ax.set_yticks(range(len(piv.index)))
+    ax.set_yticklabels([f"{r:g}" for r in piv.index])
     ax.set_title(title, fontsize=9)
     for i in range(piv.shape[0]):
         for j in range(piv.shape[1]):
@@ -188,13 +195,16 @@ def fig4_robustness() -> None:
     fig, axes = plt.subplots(1, 3, figsize=(9.2, 2.8))
     ps = sw.pivot(index="voicing_min", columns="periodicity_min", values="p_sex")
     _heat(axes[0], ps, "(a) Sex $p$ (filter grid)", "viridis", 0, 0.7, lambda v: f"{v:.2f}")
-    axes[0].set_xlabel("periodicity$_{min}$"); axes[0].set_ylabel("voicing$_{min}$")
+    axes[0].set_xlabel("periodicity$_{min}$")
+    axes[0].set_ylabel("voicing$_{min}$")
     ec = sw.pivot(index="voicing_min", columns="periodicity_min", values="eps_ctx")
     _heat(axes[1], ec, "(b) Context $\\varepsilon^2$ (filter grid)", "viridis", 0, 0.14, lambda v: f"{v:.2f}")
-    axes[1].set_xlabel("periodicity$_{min}$"); axes[1].set_ylabel("voicing$_{min}$")
+    axes[1].set_xlabel("periodicity$_{min}$")
+    axes[1].set_ylabel("voicing$_{min}$")
     pg = gd.pivot(index="prominence_db", columns="threshold_pct", values="sum")
     _heat(axes[2], pg, "(c) Corpora passing (detector grid)", "RdYlGn", 0, 6, lambda v: f"{int(v)}")
-    axes[2].set_xlabel("threshold$_{pct}$"); axes[2].set_ylabel("prominence$_{dB}$")
+    axes[2].set_xlabel("threshold$_{pct}$")
+    axes[2].set_ylabel("prominence$_{dB}$")
     fig.tight_layout()
     fig.savefig(FIG / "fig4_robustness.png")
     plt.close(fig)
@@ -224,10 +234,10 @@ def fig_graphical_abstract() -> None:
     res = detect_closures(audio, sr, cfg=DetectorConfig(), roi_ms=roi)
     clo_ms = [c.closure_t_ms for c in res.closures]
 
-    # Stacked single-column layout: each panel spans the full column width, so
-    # both render larger than the old side-by-side version (which was squeezed
-    # to ~59%). Headline lives in the caption; the y-headroom keeps the legend
-    # clear of the envelope-peak markers (which it used to overlap).
+    # Stacked single-column layout: each panel spans the full column width so
+    # both stay legible at single-column size. The headline lives in the
+    # caption; the extra y-headroom keeps the legend clear of the envelope-peak
+    # markers.
     fig, (axa, axb) = plt.subplots(
         2, 1, figsize=(3.5, 2.55), gridspec_kw={"height_ratios": [1.45, 1.0]})
 

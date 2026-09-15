@@ -1,6 +1,6 @@
 """Independent autocorrelation-based n_closures estimator.
 
-Used to cross-validate `detect_closures` (the v2 closure detector). The two
+Used to cross-validate `detect_closures` (the closure detector). The two
 algorithms share only the bandpass / envelope front-end; the back-end is
 deliberately different:
 
@@ -32,7 +32,7 @@ class PeriodDetectorConfig:
     lag_min_ms: float = 20.0
     lag_max_ms: float = 60.0
     min_regularity: float = 0.20  # below this, treat as non-periodic (n=0)
-    min_closure_spacing_ms: float = 15.0  # physical lower bound, mirrors v2
+    min_closure_spacing_ms: float = 15.0  # physical lower bound, mirrors DetectorConfig default
 
 
 @dataclass(frozen=True)

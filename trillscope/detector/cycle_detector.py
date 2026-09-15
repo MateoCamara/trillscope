@@ -137,15 +137,15 @@ def _find_closure_candidates(
         return []
     frame_ms = float(t_ms[1] - t_ms[0])
     distance = max(1, int(round(cfg.min_inter_closure_ms / frame_ms)))
-    # NOTE: do not pass prominence= here. signal.find_peaks measures prominence
+    # NOTE: the prominence passed to find_peaks is deliberately small (1 dB) and
+    # only filters out noise-floor wiggles. signal.find_peaks measures prominence
     # relative to adjacent saddle points, which collapses to a small value on
     # uniformly periodic envelopes (every dip's neighbour is another equally
-    # deep dip, so each one looks unprominent). For trills, that erroneously
-    # killed the candidate detection. Instead we gate with the
+    # deep dip, so each one looks unprominent); a realistic prominence there
+    # would reject genuine trill closures. Candidates are instead gated by the
     # closure_threshold_pct test below, which compares each candidate to the
-    # local max within a window — a more robust criterion for periodic signals.
-    # Use a very small prominence (1 dB) only to filter out noise-floor wiggles.
-    # The real prominence gate is the manual drop-from-local-max check below.
+    # local max within a window — a more robust criterion for periodic signals —
+    # and by the manual drop-from-local-max prominence check.
     peaks, _props = signal.find_peaks(inverted, distance=distance, prominence=1.0)
     win_frames = max(2, int(round(cfg.closure_window_ms / frame_ms)))
     kept: list[int] = []

@@ -1,12 +1,13 @@
 """Compute a per-token fundamental frequency (F0) for every quality-filtered trill.
 
-The v1 measurement pipeline left `mean_f0_hz` empty in every row of
-outputs/tables/acoustic_measurements_*.parquet (parselmouth was unavailable and the
-fallback returned no F0). We need a per-token F0 to test the paper's central claim:
-that the envelope-peak over-count -- the source of the spurious sex effect -- grows
-as F0 falls. F0 is estimated with librosa.pyin
-over each token's region of interest, padded with real surrounding audio so the pitch
-tracker has enough context.
+`mean_f0_hz` in the envelope-peak measurement tables
+(outputs/tables/acoustic_measurements_*.parquet) is empty when those tables are
+produced without parselmouth, because the voicing fallback in trillscope.measurement
+returns no F0. A per-token F0 is needed to test whether the envelope-peak over-count
+-- the source of the apparent sex effect -- grows as F0 falls (see
+trillscope/mechanism_sex.py). F0 is estimated with librosa.pyin over each token's
+region of interest, padded with real surrounding audio so the pitch tracker has
+enough context.
 
 Read-only over existing tables/audio. Writes only outputs/tables/per_token_f0.parquet.
 Run from repo root:  python -m trillscope.compute_f0_for_tokens

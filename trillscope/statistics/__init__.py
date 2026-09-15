@@ -1,4 +1,4 @@
-"""Block H: Statistical Analysis for trill /r/ sociolinguistic variation."""
+"""Statistical analysis of trill /r/ sociolinguistic variation."""
 
 from .base import AnalysisConfig, TestResult, AnalysisResult, interpret_effect_size
 from .data_loader import load_analysis_data, merge_with_metadata

@@ -58,14 +58,12 @@ class EncodingDetector:
         if confidence > 0.8 and detected.lower() not in [e.lower() for e in encodings]:
             encodings = [detected] + encodings
 
-        last_error = None
         for encoding in encodings:
             try:
                 with open(file_path, 'r', encoding=encoding) as f:
                     content = f.read()
                 return content, encoding
-            except (UnicodeDecodeError, LookupError) as e:
-                last_error = e
+            except (UnicodeDecodeError, LookupError):
                 continue
 
         # If all fail, try with errors='replace'

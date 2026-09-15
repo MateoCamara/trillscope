@@ -1,6 +1,6 @@
-"""Literature-anchored validation of detector v2 outputs.
+"""Literature-anchored validation of closure-detector outputs.
 
-For each corpus, take the v2 closure counts plus the cross-detector results
+For each corpus, take the closure counts plus the cross-detector results
 and answer four questions:
 
   1. Is the median n_closures within the published Spanish trill range?
@@ -9,9 +9,10 @@ and answer four questions:
   4. Do the two independent detectors agree on at least N % of tokens?
 
 The constants encoding "within range" come from Quilis 1993, Blecua 2001 and
-Henriksen 2010 / Henriksen et al. 2023. If a corpus passes all four, we treat
-v2 as calibrated on that corpus and move on. If it fails one, the markdown
-report names which check failed.
+Henriksen 2010 / Henriksen et al. 2023. Checks 1, 2 and 4 decide whether the
+closure detector is treated as calibrated on a corpus (``ValidationResult.passes``)
+and are marked PASS or FAIL individually in the markdown report; check 3 is
+reported as a percentage.
 """
 
 from __future__ import annotations
@@ -88,7 +89,7 @@ def validate(
             pct_cross_detector_agreement=0.0,
             by_context=pd.DataFrame(),
             pass_median_n=False, pass_median_period=False, pass_cross_agreement=False,
-            notes=["no v2-ok tokens"],
+            notes=["no tokens with status_v2 == 'ok'"],
         )
 
     median_n = float(ok["n_closures_v2"].median())
@@ -158,7 +159,7 @@ def write_markdown(result: ValidationResult, out_path: Path, hist_rel_path: str)
     lines: list[str] = []
     lines.append(f"# Validation report — {result.dataset}")
     lines.append("")
-    lines.append(f"- Tokens with v2 status=ok: **{result.n_tokens}**")
+    lines.append(f"- Tokens with status_v2=ok: **{result.n_tokens}**")
     lines.append(
         f"- Median n_closures: **{result.median_n_closures:.2f}** "
         f"(target {LITERATURE_TARGETS['median_n_closures_range']}) "
@@ -207,8 +208,9 @@ def run_dataset(
     closures = pd.read_parquet(closures_path)
     xval = pd.read_parquet(xval_path)
     # Drop exact-duplicate token rows inherited from r_candidates (ALBAYZIN,
-    # DIMEx100) so token counts and agreement match the analysis set (the v1->v2
-    # bridge already de-duplicates). A token is unique on (utt_id, start, end).
+    # DIMEx100) so token counts and agreement match the analysis set
+    # (bridge_to_v1_stats already de-duplicates). A token is unique on
+    # (utt_id, start, end).
     _keys = ["utt_id", "start_ms", "end_ms"]
     closures = closures.drop_duplicates(_keys).reset_index(drop=True)
     xval = xval.drop_duplicates(_keys).reset_index(drop=True)

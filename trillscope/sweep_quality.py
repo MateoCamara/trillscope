@@ -1,12 +1,12 @@
-"""B1: sensitivity of the v2 conclusions to the quality-filter thresholds.
+"""Sensitivity of the closure-count conclusions to the quality-filter thresholds.
 
 Re-applies ``apply_quality_filter`` over a grid of (periodicity_min,
 voicing_min) to the full token pool with unfiltered closure counts (produced by
 ``trillscope.detect_unfiltered``), and for each cell recomputes the sex
 (Mann-Whitney, speaker-level) and context (Kruskal-Wallis, speaker x context)
-tests on num_cycles. Writes a tidy CSV plus two heatmaps so we can state
-whether the qualitative conclusions hold across a reasonable filter range:
-sex not robustly significant, context a modest medium effect.
+tests on num_cycles. Writes a tidy CSV plus two heatmaps showing whether the
+qualitative conclusions (sex not robustly significant, context a modest medium
+effect) hold across a reasonable filter range.
 
 Duration is fixed at [50, 200] ms (literature-justified). The production point
 is periodicity_min=0.40, voicing_min=80; p-values here are uncorrected (the
@@ -65,7 +65,8 @@ def load_pool() -> pd.DataFrame:
     cl["_k"] = list(zip(cl["audio_path"], cl["start_ms"].round(3), cl["end_ms"].round(3)))
     cl_n = cl[["_k", "n_closures_v2", "status_v2"]].drop_duplicates("_k")
     pool = tok.merge(cl_n, on="_k", how="inner").drop(columns="_k")
-    # Use the analysis-grade sex labelling (matches A1's 365-speaker sample).
+    # Use the analysis-grade sex labelling (the same 365-speaker sample as the
+    # main sex analysis).
     sex_map = _speaker_sex_map()
     pool["sex"] = pool["speaker_id"].map(sex_map).fillna("unknown")
     log.info(

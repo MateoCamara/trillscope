@@ -231,7 +231,6 @@ class CommonVoiceIngestor(DatasetIngestor):
 
         # Calculate sample size per group
         # Prioritize underrepresented groups
-        total_with_groups = sum(len(v) for v in groups.values())
         samples_per_group = max(1, self.sample_size // len(groups)) if groups else 0
 
         sampled = []
@@ -376,7 +375,6 @@ class CommonVoiceIngestor(DatasetIngestor):
 
             # Parse metadata
             region, country = self._parse_accent(r['accents'])
-            gender = GENDER_MAP.get(r['gender'], 'unknown')
             age_bin = AGE_BIN_MAP.get(r['age'], 'unknown')
 
             utt_id = self.id_gen.from_filename(r['path'].replace('.mp3', ''))

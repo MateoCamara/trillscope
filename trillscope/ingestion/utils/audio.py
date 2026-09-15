@@ -62,7 +62,7 @@ class AudioInspector:
                 if riff != b'RIFF':
                     raise ValueError("Not a valid RIFF file")
 
-                file_size = struct.unpack('<I', f.read(4))[0]
+                _file_size = struct.unpack('<I', f.read(4))[0]
                 wave = f.read(4)
                 if wave != b'WAVE':
                     raise ValueError("Not a valid WAVE file")
@@ -81,11 +81,11 @@ class AudioInspector:
                     chunk_size = struct.unpack('<I', f.read(4))[0]
 
                     if chunk_id == b'fmt ':
-                        audio_format = struct.unpack('<H', f.read(2))[0]
+                        _audio_format = struct.unpack('<H', f.read(2))[0]
                         channels = struct.unpack('<H', f.read(2))[0]
                         sample_rate = struct.unpack('<I', f.read(4))[0]
                         byte_rate = struct.unpack('<I', f.read(4))[0]
-                        block_align = struct.unpack('<H', f.read(2))[0]
+                        _block_align = struct.unpack('<H', f.read(2))[0]
                         bit_depth = struct.unpack('<H', f.read(2))[0]
                         # Skip rest of fmt chunk
                         remaining = chunk_size - 16
@@ -127,7 +127,6 @@ class AudioInspector:
     def inspect_mp3(self, file_path: Path) -> AudioMetadata:
         """Extract MP3 metadata using pydub."""
         try:
-            from pydub import AudioSegment
             from pydub.utils import mediainfo
 
             # Get media info

@@ -263,7 +263,7 @@ class GlissandoIngestor(DatasetIngestor):
                     if txt_file.exists():
                         try:
                             transcript_text = txt_file.read_text(encoding='utf-8')
-                        except:
+                        except Exception:
                             pass
 
                     utt_id = self.id_gen.from_filename(stem)

@@ -47,7 +47,8 @@ def bridge_dataset(
 
     v2 = pd.read_parquet(closures_v2_path)
     v1 = pd.read_parquet(measurements_v1_path)
-    log.info("%s: %d v2 rows, %d v1 rows", closures_v2_path.stem, len(v2), len(v1))
+    log.info("%s: %d closure rows, %d envelope-peak measurement rows",
+             closures_v2_path.stem, len(v2), len(v1))
 
     v1 = v1.drop_duplicates(subset=["utt_id", "start_ms", "end_ms"])
     v2 = v2.drop_duplicates(subset=["utt_id", "start_ms", "end_ms"])
@@ -98,7 +99,7 @@ def bridge_dataset(
 
     n_unmatched = out["voicing_pct"].isna().sum() if "voicing_pct" in out.columns else 0
     log.info(
-        "  -> %s: %d rows (%d unmatched against v1 features)",
+        "  -> %s: %d rows (%d unmatched against envelope-peak measurement features)",
         out_path.name, len(out), n_unmatched,
     )
     out_path.parent.mkdir(parents=True, exist_ok=True)

@@ -1,4 +1,4 @@
-"""Build the canonical tokens.parquet that feeds the v2 validation pipeline.
+"""Build the canonical tokens.parquet that feeds the closure-detector pipeline.
 
 Joins:
 - outputs/tables/r_candidates_<dataset>.parquet  (timing, context)
@@ -7,10 +7,11 @@ Joins:
 - metadata/metadata_unified.parquet                (sex, when available)
 
 into a single frame keyed by `token_id`. The output is the raw candidate pool
-for the six IberSpeech 2026 corpora (DIMEx100, ALBAYZIN, Glissando, PRESEEA,
+for the six corpora analysed in the paper (DIMEx100, ALBAYZIN, Glissando, PRESEEA,
 TEDx, Heroico); M-AILABS and CommonVoice are excluded by policy.
 
-In addition to v1-derived columns, each row carries `periodicity_score`
+In addition to the columns taken from the envelope-peak measurement tables, each
+row carries `periodicity_score`
 computed in this script: the autocorrelation peak of the mid-band envelope
 inside the token ROI. See `trillscope.quality.compute_periodicity_score`.
 
@@ -164,7 +165,7 @@ def build(
     out = pd.concat(frames, ignore_index=True)
     out = out.dropna(subset=["auto_cycles_old"])
     out["auto_cycles_old"] = out["auto_cycles_old"].astype(int)
-    # v1's r_candidates have some duplicated rows (r_candidates_albayzin is
+    # r_candidates contain some duplicated rows (r_candidates_albayzin is
     # fully duplicated 2x). Collapse to a single row per token_id.
     out = out.drop_duplicates(subset=["token_id"], keep="first").reset_index(drop=True)
 

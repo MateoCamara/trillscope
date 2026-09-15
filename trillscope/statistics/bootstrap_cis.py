@@ -1,10 +1,11 @@
-"""Bootstrap 95% CIs for the medians reported in the v2 paper tables.
+"""Bootstrap 95% CIs for the medians reported in the paper tables.
 
-Reuses the v2 statistics loader (``trillscope.statistics.data_loader``) so the unit of
+Reuses the statistics loader (``trillscope.statistics.data_loader``) so the unit of
 analysis matches the inferential tests: speaker-level for sex / corpus, and
 speaker x context for the phonotactic-context effect. ``num_cycles`` and
-``duration_ms`` come from the bridged v2 measurements; ``period_ms`` comes from
-the independent cross-detector table (``period_ms_v2``).
+``duration_ms`` come from the bridged closure-count measurements
+(``outputs/tables_v2``); ``period_ms`` is the closure detector's mean
+inter-closure period (``period_ms_v2``), read from the cross-validation tables.
 
 Run:
     python -m trillscope.statistics.bootstrap_cis
@@ -64,7 +65,8 @@ def main() -> None:
         _emit(rows, metric, "dataset", spk)
         _emit(rows, metric, "context_label", spk_ctx)
 
-    # period_ms from the independent cross-detector table, aggregated to speaker
+    # period_ms (closure-detector period) from the cross-validation tables,
+    # aggregated to speaker
     cv = pd.concat(
         [pd.read_parquet(XVAL_DIR / f"cross_validation_{d}.parquet") for d in CORPORA],
         ignore_index=True,

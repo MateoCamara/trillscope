@@ -1,5 +1,5 @@
 """Cross-validation: run the independent period detector over every token
-already measured by detect_closures (v2), and report agreement."""
+already measured by the closure detector (detect_closures), and report agreement."""
 
 from __future__ import annotations
 
@@ -26,7 +26,8 @@ def run_dataset(
     cfg = cfg or PeriodDetectorConfig()
     src = pd.read_parquet(closures_v2_path)
     src = src[src["status_v2"] == "ok"].copy()
-    log.info("%s: %d v2-ok tokens to cross-validate", closures_v2_path.name, len(src))
+    log.info("%s: %d tokens with status_v2=ok to cross-validate",
+             closures_v2_path.name, len(src))
 
     rows: list[dict] = []
     processed = 0
@@ -43,7 +44,8 @@ def run_dataset(
             continue
         for _, row in group.iterrows():
             try:
-                # Use the same ±boundary padding as v2 so both detectors see the
+                # Use the same ±boundary padding as the closure detector
+                # (DetectorConfig.boundary_expand_ms) so both detectors see the
                 # same audio window. ROI inside that window is the labelled token.
                 pad_ms = 20.0
                 chunk_start_ms = max(0.0, float(row["start_ms"]) - pad_ms)

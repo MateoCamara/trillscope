@@ -89,7 +89,6 @@ class DIMEx100Extractor:
 
             # Track word position heuristically
             word_idx = 0
-            current_word = ""
 
             for i, segment in enumerate(segments):
                 if segment.is_trill:

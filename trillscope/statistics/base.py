@@ -1,4 +1,4 @@
-"""Base classes and data types for statistical analysis (Block H)."""
+"""Base classes and data types for statistical analysis."""
 
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any, Tuple
@@ -84,7 +84,7 @@ class AnalysisResult:
     descriptive_stats: pd.DataFrame = field(default_factory=pd.DataFrame)
     test_results: List[TestResult] = field(default_factory=list)
 
-    # Mixed-effects results (A2 ablation)
+    # Token-level mixed-effects results (speaker as random effect)
     mixed_effects_results: List[Dict[str, Any]] = field(default_factory=list)
 
     figures: List[str] = field(default_factory=list)  # Paths to generated figures

@@ -1,11 +1,11 @@
-"""B0: detector v2 on the FULL token pool, with NO quality filter.
+"""Run the closure detector on the FULL token pool, with NO quality filter.
 
 The production ``closures_v2_*.parquet`` only contain tokens that pass the
 production quality filter (periodicity >= 0.40, voicing >= 80, duration in
 [50, 200]). A filter-sensitivity sweep therefore cannot go *looser* than the
 production thresholds without closure counts for the excluded tokens.
 
-This script runs detector v2 with the production config on every token in
+This script runs the closure detector with the production config on every token in
 ``tokens.parquet`` (the sweep universe, ~16.8k tokens) — NOT the full
 ``r_candidates_*`` (which include tens of thousands of un-measured tokens) —
 and writes the result to ``outputs/tables_unfiltered/``, leaving the production

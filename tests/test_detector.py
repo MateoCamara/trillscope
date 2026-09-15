@@ -1,4 +1,4 @@
-"""Tests for detector v2.
+"""Tests for the closure detector.
 
 Validates that the closure-based detector recovers ground-truth closures from
 synthetic trills across the expected operating range (n = 2..5 closures).
@@ -100,7 +100,7 @@ def test_at_most_one_closure_on_pure_vowel():
 
 def test_no_double_count_envelope_peaks():
     """Critical: a 3-closure trill must yield ~3 closures, NOT ~6 (which would
-    mean we are counting envelope peaks as the old detector did)."""
+    mean we are counting envelope peaks as an envelope-peak counter would)."""
     spec = TrillSpec(n_closures=3, period_ms=30.0, period_jitter_ms=1.0,
                      noise_snr_db=30.0, rng_seed=11)
     audio, _, sr, roi = synthesize_trill(spec)

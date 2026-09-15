@@ -1,18 +1,15 @@
-"""Build the anonymous supplementary website for the Spanish-trill paper.
+"""Build the supplementary website for the Spanish-trill paper.
 
 Produces a self-contained static site under ``supplement/`` (index.html + assets/)
 that lets readers LISTEN to trill examples and SEE the closure-vs-envelope-peak
 distinction, the F0 mechanism, the per-context effect, and the per-corpus
-validation. Upload anonymously (GitHub Pages / OSF / Netlify drop); the folder is
-self-contained and zippable.
+validation. The folder can be served as a static site (e.g. GitHub Pages) or
+zipped as is.
 
 Audio policy (licensing): only redistributable audio is exported as playable
 clips -- synthetic trills (fully synthetic) and Common Voice (CC0). The six
 analysed corpora are licence-restricted, so the site shows only their *derived*
 visualisations (spectrograms, contact sheets), never their audio.
-
-Anonymity: no author names, emails, local filesystem paths, or git info are
-written into the output.
 
 Run from repo root:  python -m trillscope.paper.build_supplement
 """
@@ -45,7 +42,7 @@ AUDIO = SUP / "assets" / "audio"
 IMG = SUP / "assets" / "img"
 TABLES = ROOT / "outputs" / "tables"
 VALID = ROOT / "reports" / "validation"
-FIGS = ROOT / "paper" / "iberspeech2026" / "figures"
+FIGS = ROOT / "outputs" / "figures"
 
 CFG = DetectorConfig()
 
@@ -68,8 +65,9 @@ def _envelope(audio: np.ndarray, sr: int, smooth_ms: float = 6.0) -> np.ndarray:
 
 
 def _envelope_peaks(audio: np.ndarray, sr: int, roi_ms: tuple[float, float]):
-    """An envelope-peak counter (the v1-style unit): maxima of the smoothed
-    rectified envelope inside the ROI. Returns peak times (ms, absolute)."""
+    """An envelope-peak counter (the unit of the envelope-peak baseline): maxima
+    of the smoothed rectified envelope inside the ROI. Returns peak times (ms,
+    absolute)."""
     env = _envelope(audio, sr)
     peaks, _ = find_peaks(
         env, distance=int(0.012 * sr), prominence=0.12 * float(env.max())
@@ -110,7 +108,7 @@ def _spectrogram_panel(
     if closures_ms is not None:
         for i, c in enumerate(closures_ms):
             ax_s.axvline(c / 1000.0, color="#3df", lw=1.6,
-                         label="closure (v2)" if i == 0 else None)
+                         label="closure" if i == 0 else None)
 
 
 # --------------------------------------------------------------------------- #
@@ -130,9 +128,11 @@ def gen_canonical_examples() -> list[dict]:
         fig, (aw, as_) = plt.subplots(2, 1, figsize=(6.2, 3.0), sharex=True,
                                       gridspec_kw={"height_ratios": [1, 3]})
         _spectrogram_panel(aw, as_, audio, sr, roi, closures_ms=clo)
-        fig.suptitle(f"Synthetic trill — {n} closure(s); detector v2 found {n_v2}",
+        fig.suptitle(f"Synthetic trill — {n} closure(s); closure detector found {n_v2}",
                      fontsize=9)
-        fig.tight_layout(); fig.savefig(png, dpi=120); plt.close(fig)
+        fig.tight_layout()
+        fig.savefig(png, dpi=120)
+        plt.close(fig)
         out.append({"n": n, "n_v2": n_v2, "wav": wav.name, "png": png.name})
     return out
 
@@ -150,11 +150,14 @@ def gen_mechanism_demo() -> dict:
     fig, (aw, as_) = plt.subplots(2, 1, figsize=(7.2, 3.4), sharex=True,
                                   gridspec_kw={"height_ratios": [1, 3]})
     _spectrogram_panel(aw, as_, audio, sr, roi, closures_ms=clo, peaks_ms=pk)
-    aw.legend(loc="upper right", fontsize=6); as_.legend(loc="upper right", fontsize=6)
+    aw.legend(loc="upper right", fontsize=6)
+    as_.legend(loc="upper right", fontsize=6)
     fig.suptitle(
-        f"Same token, two units: {n_v2} verified closures (v2) "
-        f"vs {len(pk)} envelope peaks (v1-style)", fontsize=9)
-    fig.tight_layout(); fig.savefig(IMG / "mech_demo.png", dpi=120); plt.close(fig)
+        f"Same token, two units: {n_v2} verified closures "
+        f"vs {len(pk)} envelope peaks", fontsize=9)
+    fig.tight_layout()
+    fig.savefig(IMG / "mech_demo.png", dpi=120)
+    plt.close(fig)
     demo.update(n_v2=n_v2, n_peaks=int(len(pk)),
                 wav="mech_demo.wav", png="mech_demo.png")
 
@@ -192,13 +195,15 @@ def gen_excess_scatter() -> dict:
     ax.set_ylabel("over-count  (envelope-peak − closure)")
     ax.set_title(f"Over-count rises as $f_0$ falls   (Spearman ρ = {rho:.2f})", fontsize=10)
     ax.legend(fontsize=8)
-    fig.tight_layout(); fig.savefig(IMG / "excess_vs_f0.png", dpi=120); plt.close(fig)
+    fig.tight_layout()
+    fig.savefig(IMG / "excess_vs_f0.png", dpi=120)
+    plt.close(fig)
     return {"png": "excess_vs_f0.png", "rho": round(float(rho), 2), "n": int(len(d))}
 
 
 def gen_sample_sizes() -> dict:
     """Per-cell token/speaker counts (context x corpus, sex x context) -- the
-    post-filter balance, kept out of the 5-page paper."""
+    post-filter balance behind the context and sex analyses."""
     from trillscope.mechanism_sex import _load_tokens
     tok = _load_tokens()
     CTX = ["intervocalic_rr", "after_nls", "word_initial"]
@@ -341,8 +346,10 @@ def gen_cv_examples(n_per_ctx: int = 2) -> list[dict]:
                                           gridspec_kw={"height_ratios": [1, 3]})
             _spectrogram_panel(aw, as_, chunk, sr, roi, closures_ms=clo)
             fig.suptitle(f"Common Voice (CC0) — “{html.unescape(str(row['word']))}” "
-                         f"[{ctx}] — v2 closures: {n_v2}", fontsize=9)
-            fig.tight_layout(); fig.savefig(IMG / f"{tag}.png", dpi=120); plt.close(fig)
+                         f"[{ctx}] — closures: {n_v2}", fontsize=9)
+            fig.tight_layout()
+            fig.savefig(IMG / f"{tag}.png", dpi=120)
+            plt.close(fig)
             out.append({"ctx": ctx, "word": str(row["word"]), "n_v2": n_v2,
                         "wav": f"{tag}.wav", "png": f"{tag}.png"})
             picked += 1
@@ -423,7 +430,7 @@ def build_html(ctx: dict) -> str:
     def canon_cards():
         return "".join(
             f'<div class="card"><b>{c["n"]} closure(s)</b>'
-            f'<span class="mut small"> · v2 detected {c["n_v2"]}</span>'
+            f'<span class="mut small"> · detector found {c["n_v2"]}</span>'
             f'{_img(c["png"])}{_audio(c["wav"])}</div>'
             for c in ctx["canonical"])
 
@@ -432,7 +439,7 @@ def build_html(ctx: dict) -> str:
             return '<p class="mut">No Common Voice clips were exported in this build.</p>'
         return "".join(
             f'<div class="card"><b>“{e(c["word"])}”</b>'
-            f'<span class="mut small"> · {c["ctx"]} · v2 closures {c["n_v2"]}</span>'
+            f'<span class="mut small"> · {c["ctx"]} · detected closures {c["n_v2"]}</span>'
             f'{_img(c["png"])}{_audio(c["wav"])}</div>'
             for c in ctx["cv"])
 
@@ -466,7 +473,7 @@ def build_html(ctx: dict) -> str:
   <p>Supplementary material — listen to trill examples and see the
   closure-vs-envelope-peak distinction, the f₀ mechanism, the phonotactic-context
   effect, and per-corpus validation.</p>
-  <div class="badge">Anonymous submission · supplementary site</div>
+  <div class="badge">Supplementary site</div>
 </header>
 <main>
 
@@ -511,7 +518,7 @@ count is f₀-dependent; the closure count is not.</p>
   <div><table><thead><tr><th>measure</th><th>F</th><th>M</th><th>M−F</th></tr></thead>
   <tbody>
    <tr><td>envelope-peak count</td><td>4.33</td><td>6.12</td><td>+1.79*</td></tr>
-   <tr><td>closure count (v2)</td><td>1.80</td><td>2.02</td><td>+0.22 n.s.</td></tr>
+   <tr><td>closure count</td><td>1.80</td><td>2.02</td><td>+0.22 n.s.</td></tr>
   </tbody></table>
   <p class="small mut">Speakers with independent (metadata) sex labels, DIMEx100
   excluded. *Mann–Whitney p&lt;10⁻⁹, rank-biserial r = 0.53. The over-count absorbs
@@ -568,12 +575,11 @@ plus the source audio. The closure detector, the fixed quality filter
 (duration ∈ [50, 200] ms, voicing ≥ 80 %, envelope-periodicity ≥ 0.40), and the
 independent period cross-detector are all released with the code.</p>
 <p>The complete pipeline — the closure detector, the fixed quality filter, the
-independent period cross-detector, and the test suite — is provided as an
-accompanying anonymous code archive submitted alongside this paper.</p>
-<p class="mut small">This page contains no author-identifying information.</p></section>
+independent period cross-detector, and the test suite — is available at
+<a href="https://github.com/MateoCamara/trillscope">https://github.com/MateoCamara/trillscope</a>.</p></section>
 
 </main>
-<footer>Supplementary material · anonymous submission · synthetic &amp; CC0 audio only</footer>
+<footer>Supplementary material · synthetic &amp; CC0 audio only</footer>
 </body></html>"""
 
 

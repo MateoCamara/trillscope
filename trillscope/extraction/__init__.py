@@ -1,4 +1,4 @@
-"""Block F: Trill /r/ candidate extraction."""
+"""Trill /r/ candidate extraction."""
 
 from .base import TrillCandidate, ExtractionResult
 

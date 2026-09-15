@@ -36,7 +36,6 @@ def analyze_voicing(
 
     try:
         import parselmouth
-        from parselmouth.praat import call
 
         # Create Praat Sound object
         sound = parselmouth.Sound(audio, sampling_frequency=sr)

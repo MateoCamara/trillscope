@@ -1,4 +1,4 @@
-"""Command-line interface for metadata normalization (Block C)."""
+"""Command-line interface for metadata normalization."""
 
 import argparse
 import logging
@@ -30,7 +30,7 @@ def normalize_dataset(dataset: str, metadata_dir: Path,
 
     if not parquet_path.exists():
         logger.warning(f"{dataset} parquet not found at {parquet_path}")
-        logger.warning(f"Run Block A ingestion first: python -m trillscope.ingestion.cli ingest {dataset}")
+        logger.warning(f"Run ingestion first: python -m trillscope.ingestion.cli ingest {dataset}")
         return None
 
     if dataset == 'albayzin':
@@ -100,7 +100,7 @@ def preview_mappings(dataset: str) -> None:
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
-        description='Metadata normalization for Spanish speech corpora (Block C)',
+        description='Metadata normalization for Spanish speech corpora',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -135,7 +135,7 @@ Output files:
         '--metadata-dir',
         type=Path,
         default=Path('metadata'),
-        help='Directory containing Block A parquet files (default: metadata/)'
+        help='Directory containing the raw ingestion parquet files (default: metadata/)'
     )
     norm_parser.add_argument(
         '--output-dir',

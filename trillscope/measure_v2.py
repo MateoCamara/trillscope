@@ -113,7 +113,7 @@ def run_dataset(
     progress_every: int = 500,
     keep_keys: set[tuple] | None = None,
 ) -> pd.DataFrame:
-    """Run detector v2 on every timed token in `candidates_path`.
+    """Run the closure detector on every timed token in `candidates_path`.
 
     Tokens without timing (alignment_source == "orthographic" or duration_ms <= 0)
     are dropped before the loop. If `keep_keys` is given, only tokens whose

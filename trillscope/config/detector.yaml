@@ -1,10 +1,10 @@
-# Detector v2 parameters. Mirrors trillscope.detector.cycle_detector.DetectorConfig.
-# All physical constants are anchored in the trill phonetics literature:
+# Closure-detector parameters used for the published analysis.
+# Keys mirror trillscope.detector.DetectorConfig; load with
+# trillscope.detector.load_config().
+# Physical constants are anchored in the trill phonetics literature:
 #   - Closures ~ 15–30 ms; full cycles ~ 30–50 ms; trills ~ 50–120 ms.
-#   - MFA alignment grid is 10 ms; we add 10 ms slack on each side.
-#
-# Tune `closure_threshold_pct` and `closure_prominence_db` against the manual
-# annotation set (Phase A2) before locking values.
+#   - Each token is analysed with ±boundary_expand_ms of padding around its
+#     aligned boundaries, which absorbs alignment error.
 
 frame_ms: 2.5
 

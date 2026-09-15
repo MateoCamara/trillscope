@@ -1,4 +1,4 @@
-"""C: sensitivity of detector v2 to its two main thresholds.
+"""Sensitivity of the closure detector to its two main thresholds.
 
 Re-runs detect + cross-validate + literature validation over a grid of
 (closure_prominence_db, closure_threshold_pct), holding everything else at the

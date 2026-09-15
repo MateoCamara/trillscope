@@ -1,20 +1,20 @@
-"""Demonstrate that the spurious sex effect is a counting artifact tied to F0.
+"""Test whether the apparent sex effect is a counting artifact tied to F0.
 
-The paper argues that the v1 envelope-peak counter inflates "cycles" for low-F0
-(male) voices because it registers a maximum for both the occlusion and its release,
-so the count scales with harmonic density -- whereas the v2 closure counter, anchored
-on energy minima with verified releases, does not.
+The envelope-peak baseline counter (trillscope.measurement) can inflate "cycles"
+for low-F0 (male) voices because it registers a maximum for both the occlusion and
+its release, so the count scales with harmonic density. The closure detector
+(trillscope.detector), anchored on energy minima with verified releases, should not.
 
-Here we test it directly on the quality-filtered tokens, now that a real per-token F0
-is available (trillscope/compute_f0_for_tokens.py). Predictions:
+This script tests that on the quality-filtered tokens, using the per-token F0 from
+trillscope/compute_f0_for_tokens.py. If the mechanism holds:
 
-  1. The per-token over-count  excess = num_cycles(v1) - n_closures_v2  rises as F0
-     falls  ->  Spearman rho(excess, F0) < 0.
-  2. The v1 count correlates with F0 while the v2 count does not  ->
+  1. The per-token over-count  excess = num_cycles (envelope-peak) - n_closures_v2
+     rises as F0 falls  ->  Spearman rho(excess, F0) < 0.
+  2. The envelope-peak count correlates with F0 while the closure count does not  ->
      rho(num_cycles, F0) clearly negative & significant; rho(n_closures_v2, F0) ~ 0.
   3. Consequence (independent, metadata-based sex; DIMEx excluded as its sex is
-     F0-inferred and would be circular): men show a v1-count advantage but no
-     v2-count advantage.
+     F0-inferred and would be circular): men show an envelope-peak-count advantage
+     but no closure-count advantage.
 
 Read-only over existing tables. Writes reports/v2/mechanism_sex.md + CSV.
 Run from repo root (after compute_f0_for_tokens):  python -m trillscope.mechanism_sex
@@ -45,7 +45,7 @@ def _rho(a: pd.Series, b: pd.Series):
 
 
 def _load_tokens() -> pd.DataFrame:
-    # 1. quality-filtered tokens with the v2 closure count
+    # 1. quality-filtered tokens with the closure-detector count
     frames = []
     for ds in CORPORA:
         p = TABLES_DIR / f"closures_v2_{ds}.parquet"
@@ -64,7 +64,7 @@ def _load_tokens() -> pd.DataFrame:
     tok = tok.merge(f0[["dataset", "utt_id", "start_ms", "end_ms", "mean_f0_hz"]],
                     on=["dataset", "utt_id", "start_ms", "end_ms"], how="left")
 
-    # 3. v1 envelope-peak count + independent sex, via the paper's loader
+    # 3. envelope-peak baseline count + independent sex, via the analysis loader
     adf, _ = load_analysis_data(TABLES_DIR, META, datasets=CORPORA,
                                 aggregate_by_speaker=False)
     adf = adf.copy()
@@ -96,10 +96,10 @@ def main() -> None:
     L: list[str] = ["# Sex artifact = counting method, not articulation\n"]
     L.append(f"- Quality-filtered tokens: **{n}**")
     L.append(f"- with real F0 (librosa pyin): **{n_f0}** ({100*n_f0/n:.1f}%)")
-    L.append(f"- matched to v1 envelope-peak count: **{n_v1}** ({100*n_v1/n:.1f}%)")
+    L.append(f"- matched to envelope-peak baseline count: **{n_v1}** ({100*n_v1/n:.1f}%)")
     L.append(f"- usable for the F0 mechanism test (both): **{len(core)}**\n")
-    L.append(f"- mean v1 count {core['num_cycles'].mean():.2f}, "
-             f"mean v2 count {core['n_closures_v2'].mean():.2f}, "
+    L.append(f"- mean envelope-peak count {core['num_cycles'].mean():.2f}, "
+             f"mean closure count {core['n_closures_v2'].mean():.2f}, "
              f"mean over-count (excess) {core['excess'].mean():.2f}\n")
 
     rows = []
@@ -109,8 +109,8 @@ def main() -> None:
     L.append("| correlate | Spearman rho | p | n |")
     L.append("|---|---:|---:|---:|")
     for name, col in [("excess vs F0", "excess"),
-                      ("v1 envelope-peak count vs F0", "num_cycles"),
-                      ("v2 closure count vs F0", "n_closures_v2")]:
+                      ("envelope-peak count vs F0", "num_cycles"),
+                      ("closure count vs F0", "n_closures_v2")]:
         r, p, k = _rho(core[col], core["mean_f0_hz"])
         rows.append({"scope": "token", "test": name, "rho": r, "p": p, "n": k})
         L.append(f"| {name} | {r:+.3f} | {p:.1e} | {k} |")
@@ -125,8 +125,8 @@ def main() -> None:
     L.append("| correlate | Spearman rho | p | n speakers |")
     L.append("|---|---:|---:|---:|")
     for name, col in [("excess vs F0", "excess"),
-                      ("v1 count vs F0", "num_cycles"),
-                      ("v2 count vs F0", "n_closures_v2")]:
+                      ("envelope-peak count vs F0", "num_cycles"),
+                      ("closure count vs F0", "n_closures_v2")]:
         r, p, k = _rho(spk[col], spk["mean_f0_hz"])
         rows.append({"scope": "speaker", "test": name, "rho": r, "p": p, "n": k})
         L.append(f"| {name} | {r:+.3f} | {p:.1e} | {k} |")
@@ -147,8 +147,8 @@ def main() -> None:
     L.append("| measure | F mean | M mean | M-F | Mann-Whitney p | rank-biserial r |")
     L.append("|---|---:|---:|---:|---:|---:|")
     for name, col in [("F0 (Hz)", "mean_f0_hz"),
-                      ("v1 envelope-peak count", "num_cycles"),
-                      ("v2 closure count", "n_closures_v2"),
+                      ("envelope-peak count", "num_cycles"),
+                      ("closure count", "n_closures_v2"),
                       ("over-count (excess)", "excess")]:
         f = spk_sx.loc[spk_sx["sex"] == "F", col]
         m = spk_sx.loc[spk_sx["sex"] == "M", col]
@@ -170,13 +170,13 @@ def main() -> None:
     L.append("## Verdict\n")
     L.append(
         f"The envelope-peak over-count rises as F0 falls (rho={r_ex:+.2f}, p={p_ex:.1e}). "
-        f"The v1 count is F0-dependent (rho={r_v1:+.2f}, p={p_v1:.1e}) while the v2 "
+        f"The envelope-peak count is F0-dependent (rho={r_v1:+.2f}, p={p_v1:.1e}) while the "
         f"closure count is {'essentially F0-independent' if abs(r_v2) < abs(r_v1)/2 else 'also F0-linked'} "
         f"(rho={r_v2:+.2f}, p={p_v2:.1e}). "
         + ("**Mechanism demonstrated**: the apparent sex effect is located in the "
            "counting method, not in articulation.\n"
            if demonstrated else
-           "Result is mixed; not a clean demonstration.\n"))
+           "The result is mixed: not all of the criteria above are met.\n"))
 
     pd.DataFrame(rows).to_csv(OUT_CSV, index=False)
     OUT_MD.write_text("\n".join(L), encoding="utf-8")

@@ -1,4 +1,4 @@
-"""Base classes and data types for metadata normalization (Block C)."""
+"""Base classes and data types for metadata normalization."""
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -121,7 +121,7 @@ class DatasetMetadataNormalizer(ABC):
 
     @abstractmethod
     def load_raw_data(self) -> pd.DataFrame:
-        """Load raw parquet from Block A."""
+        """Load the raw parquet written by ingestion."""
         pass
 
     @abstractmethod

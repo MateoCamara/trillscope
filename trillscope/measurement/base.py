@@ -1,4 +1,4 @@
-"""Base classes and data types for acoustic measurement (Block G)."""
+"""Base classes and data types for acoustic measurement."""
 
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any

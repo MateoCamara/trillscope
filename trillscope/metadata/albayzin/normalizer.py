@@ -72,7 +72,7 @@ class AlbayzinMetadataNormalizer(DatasetMetadataNormalizer):
         self.education_mapper = EducationMapper()
 
     def load_raw_data(self) -> pd.DataFrame:
-        """Load Block A parquet."""
+        """Load the raw parquet written by ingestion."""
         logger.info(f"Loading ALBAYZIN data from {self.parquet_path}")
         df = pd.read_parquet(self.parquet_path)
         logger.info(f"Loaded {len(df):,} records")

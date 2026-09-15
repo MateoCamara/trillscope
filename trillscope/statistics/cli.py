@@ -1,4 +1,4 @@
-"""CLI for statistical analysis (Block H)."""
+"""CLI for statistical analysis."""
 
 import argparse
 import logging
@@ -45,11 +45,12 @@ def run_analysis(
         config: Analysis configuration
         datasets: List of datasets to include
         skip_viz: Skip visualization generation
-        min_cycles: Minimum cycle count filter (A3 ablation)
-        min_duration: Minimum duration filter in ms (A3 ablation)
+        min_cycles: Minimum cycle count filter (filter sensitivity)
+        min_duration: Minimum duration filter in ms (filter sensitivity)
         max_cycles: Maximum cycle count filter (outlier removal)
         exclude_overlap: Exclude PRESEEA tokens with overlap markers
-        run_mixed_effects: Run mixed-effects models (A2 ablation)
+        run_mixed_effects: Also run token-level mixed-effects models
+            (speaker as random effect)
         exclude_f0_for_dimex: Exclude F0 from DIMEx100 sex analysis
 
     Returns:
@@ -74,7 +75,7 @@ def run_analysis(
     initial_count = len(df)
     logger.info(f"Loaded {initial_count} records")
 
-    # 2. Apply filters (A3 filter sensitivity)
+    # 2. Apply optional token filters (filter sensitivity)
     if min_cycles > 0:
         df = df[df['num_cycles'] >= min_cycles]
         logger.info(f"After min_cycles={min_cycles} filter: {len(df)} records")
@@ -136,7 +137,7 @@ def run_analysis(
     )
     logger.info(f"Completed {len(result.test_results)} tests")
 
-    # 6. Run mixed-effects models if requested (A2 ablation)
+    # 6. Run token-level mixed-effects models if requested
     if run_mixed_effects:
         logger.info("Running mixed-effects models...")
         from .inferential import run_mixed_effects_tests
@@ -247,23 +248,23 @@ def main():
         action='store_true',
         help='Skip visualization generation'
     )
-    # Ablation study arguments
+    # Subsetting and sensitivity-analysis arguments
     analyze_parser.add_argument(
         '--corpus',
         choices=['albayzin', 'preseea', 'dimex100'],
-        help='Analyze only a single corpus (for within-corpus ablation A1)'
+        help='Analyze only a single corpus (for within-corpus analysis)'
     )
     analyze_parser.add_argument(
         '--min-cycles',
         type=int,
         default=0,
-        help='Minimum number of cycles to include (for filter sensitivity A3)'
+        help='Minimum number of cycles to include (for filter-sensitivity analysis)'
     )
     analyze_parser.add_argument(
         '--min-duration',
         type=float,
         default=0.0,
-        help='Minimum duration in ms to include (for filter sensitivity A3)'
+        help='Minimum duration in ms to include (for filter-sensitivity analysis)'
     )
     analyze_parser.add_argument(
         '--max-cycles',
@@ -279,7 +280,7 @@ def main():
     analyze_parser.add_argument(
         '--mixed-effects',
         action='store_true',
-        help='Run mixed-effects models (A2 ablation)'
+        help='Also run token-level mixed-effects models with speaker as random effect'
     )
     analyze_parser.add_argument(
         '--exclude-f0-for-dimex',
@@ -304,16 +305,16 @@ def main():
     )
 
     # Show config command
-    config_parser = subparsers.add_parser('show-config', help='Show default configuration')
+    subparsers.add_parser('show-config', help='Show default configuration')
 
     args = parser.parse_args()
 
     if args.command == 'analyze':
         # Configure predictors based on factors
         if args.factors == 'all':
-            # country/region excluded for the v2 paper: the post-quality-filter
+            # country/region are excluded from 'all': the post-quality-filter
             # sample is España-dominated (n~93 vs Arg/Mex/Ven n=3-6), too
-            # unbalanced for a defensible dialectal test. See plan V2.
+            # unbalanced for a reliable dialectal test.
             predictor_vars = ['sex', 'age_bin', 'education_bin', 'speech_style', 'context_label']
         elif args.factors == 'sex':
             predictor_vars = ['sex']
@@ -384,7 +385,6 @@ def main():
 
         tables_dir = args.output_dir / 'tables'
         desc_path = tables_dir / 'descriptive_stats.csv'
-        tests_path = tables_dir / 'statistical_tests.csv'
 
         if not desc_path.exists():
             print(f"Error: {desc_path} not found. Run 'analyze' first.")

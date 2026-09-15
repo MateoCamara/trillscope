@@ -21,7 +21,7 @@ class IDGenerator:
         Generate deterministic utterance ID.
 
         Format: {prefix}_{speaker}_{recording}[_{seq}]
-        Example: ALB_AA_FA0001, PRE_ALCA_H11_037, DIM_s001_01
+        Example: ALB_AA_FA0001, PRE_CITY_H11_001, DIM_s001_01
 
         Args:
             speaker_id: Speaker identifier

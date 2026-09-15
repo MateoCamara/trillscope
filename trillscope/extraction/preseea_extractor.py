@@ -140,7 +140,7 @@ class PreseeaExtractor:
                                    result: ExtractionResult) -> None:
         """Extract candidates from MFA output TextGrids."""
         # MFA was run on segmented audio, so TextGrid files are named like
-        # ALCA_H12_019_seg019.TextGrid, not ALCA_H12_019.TextGrid
+        # CITY_H12_001_seg019.TextGrid, not CITY_H12_001.TextGrid
         # Find all TextGrid files and group by base file ID
 
         # Use provided MFA output directory or runner's output directory
@@ -171,7 +171,7 @@ class PreseeaExtractor:
         # Group TextGrids by base MP3 file
         mp3_to_textgrids = {}
         for tg_path in textgrid_files:
-            # Extract base file ID: ALCA_H12_019_seg019 -> ALCA_H12_019
+            # Extract base file ID: CITY_H12_001_seg019 -> CITY_H12_001
             tg_name = tg_path.stem
             if '_seg' in tg_name:
                 base_id = tg_name.rsplit('_seg', 1)[0]

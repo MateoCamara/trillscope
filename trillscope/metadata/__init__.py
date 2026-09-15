@@ -1,4 +1,4 @@
-"""Block C: Common Metadata Schema for Spanish speech corpora."""
+"""Common metadata schema for Spanish speech corpora."""
 
 from .base import (
     UnifiedMetadata,

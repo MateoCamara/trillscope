@@ -241,7 +241,7 @@ Examples:
     )
 
     # Setup MFA command
-    mfa_parser = subparsers.add_parser('setup-mfa', help='Download MFA Spanish models')
+    subparsers.add_parser('setup-mfa', help='Download MFA Spanish models')
 
     args = parser.parse_args()
 

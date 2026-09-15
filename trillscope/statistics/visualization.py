@@ -73,7 +73,7 @@ def create_boxplots(
     for idx, var in enumerate(outcome_vars):
         ax = axes[idx]
 
-        # Create box plot using matplotlib directly (seaborn 0.13.2 has bugs)
+        # Draw the box plot with matplotlib directly; seaborn only supplies the palette
         group_data = [valid_df[valid_df[group_var] == g][var].dropna().values
                       for g in valid_df[group_var].unique()]
         bp = ax.boxplot(group_data, patch_artist=True, showfliers=True)
@@ -201,7 +201,7 @@ def create_violin_plots(
     for idx, var in enumerate(outcome_vars):
         ax = axes[idx]
 
-        # Use matplotlib violinplot directly to avoid seaborn 0.13.2 bugs
+        # Draw the violin plot with matplotlib directly; seaborn only supplies the palette
         group_data = [valid_df[valid_df[group_var] == g][var].dropna().values
                       for g in groups]
         # Filter out empty groups

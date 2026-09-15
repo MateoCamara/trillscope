@@ -1,9 +1,9 @@
 """trillscope command-line interface.
 
 Subcommands:
-    python -m trillscope.cli detect         <dataset|all>   run v2 closure detector
-    python -m trillscope.cli cross-validate <dataset|all>   run independent period
-                                                       detector and compare to v2
+    python -m trillscope.cli detect         <dataset|all>   run the closure detector
+    python -m trillscope.cli cross-validate <dataset|all>   run the independent period
+                                                       detector and compare counts
     python -m trillscope.cli validate       <dataset|all>   write validation report
                                                        against literature targets
 """
@@ -77,10 +77,10 @@ def _load_filter_keys(args: argparse.Namespace) -> dict[str, set]:
         ds = canonical_to_key.get(corpus)
         if ds is None:
             continue
-        # Recover utt_id from token_id: "<ds>-<utt_id>-<word_idx>-<r_idx>"
-        # Better: parse from group; tokens.parquet drops utt_id. We need it.
-        # The token_id has format ds-UTT_ID-wi-ri. Split by '-' but utt_ids can contain '-'.
-        # We split off the prefix (ds + "-") and the last two '-N' chunks.
+        # tokens.parquet does not carry utt_id, so recover it from token_id,
+        # whose format is "<ds>-<utt_id>-<word_idx>-<r_idx>". utt_ids may
+        # contain '-', so strip the "<ds>-" prefix and split off only the last
+        # two '-N' chunks.
         utt_ids = []
         for tid in group["token_id"]:
             tail = tid[len(ds) + 1:]
@@ -129,7 +129,7 @@ def main(argv: list[str] | None = None) -> None:
                  "Output directory for parquets (default: outputs/tables)"),
     )
 
-    p = sub.add_parser("detect", help="Run detector v2 on a dataset")
+    p = sub.add_parser("detect", help="Run the closure detector on a dataset")
     p.add_argument("dataset", choices=["all", *DATASETS])
     p.add_argument(common_paths["candidates_dir"][0], type=Path,
                    default=common_paths["candidates_dir"][1],

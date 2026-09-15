@@ -1,17 +1,17 @@
-"""Show the quality filter does not drop tokens in a sex-biased way.
+"""Test whether the quality filter drops tokens in a sex-biased way.
 
 Motivation: the fixed quality filter keeps only ~21% of candidate tokens
-(3,561 / 16,836), so the remaining ~79% might carry the "real" population trend.
-The sharpest version of the worry is that men devoice more, so the voicing >= 80%
-criterion would preferentially remove male tokens and *manufacture* the sex null.
+(3,561 / 16,836), so the dropped ~79% could carry a different population trend.
+In particular, if men devoice more, the voicing >= 80% criterion would
+preferentially remove male tokens and could produce a spurious sex null result.
 
 This script tests that directly on the full candidate pool. If the filter were
 sex-biased we would see (a) different retention rates for F vs M, (b) a significant
-sex x inclusion association, and (c) lower voicing among male candidates. Predictions
-(the defensible outcome): retention F ~= M, association n.s., and voicing not lower
-for men -> the sex null is not an artifact of the filter.
+sex x inclusion association, and (c) lower voicing among male candidates. If
+retention is similar for F and M, the association is not significant, and voicing
+is not lower for men, the sex null result is not an artifact of the filter.
 
-Sex is taken from the paper's loader (metadata-based). DIMEx100 is excluded: its sex
+Sex is taken from the analysis loader (metadata-based). DIMEx100 is excluded: its sex
 is F0-inferred and unavailable at token level, matching the non-circular stance of
 trillscope/mechanism_sex.py. Read-only over existing tables.
 
@@ -185,8 +185,8 @@ def main() -> None:
          "an artifact of the quality filter.\n"
          if balanced else
          "**A sex imbalance is present** in filter attrition (one or more tests "
-         "significant). This is no longer a reassuring control but a finding in its "
-         "own right -- report it explicitly and revisit the sex-null framing.\n"))
+         "significant), so the sex null result may be partly an artifact of the "
+         "quality filter.\n"))
 
     pd.DataFrame(rows).to_csv(OUT_CSV, index=False)
     OUT_MD.write_text("\n".join(L), encoding="utf-8")
