@@ -327,6 +327,6 @@ def _format_var_name(var_name: str) -> str:
         'cycle_rate_hz': 'Cycle Rate (Hz)',
         'mean_hnr_db': 'Mean HNR (dB)',
         'mean_intensity_db': 'Mean Intensity (dB)',
-        'cycle_regularity': 'Cycle Regularity',
+        'cycle_regularity': 'Interval CV',
     }
     return replacements.get(var_name, var_name.replace('_', ' ').title())
