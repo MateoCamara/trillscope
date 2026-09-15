@@ -270,7 +270,7 @@ Output files:
 
         if all_results:
             logger.info(f"\n{'=' * 60}")
-            logger.info(f"  MEASUREMENT COMPLETE")
+            logger.info("  MEASUREMENT COMPLETE")
             logger.info(f"{'=' * 60}")
 
             total_tokens = sum(r.statistics.get('total_tokens', 0) for r in all_results)

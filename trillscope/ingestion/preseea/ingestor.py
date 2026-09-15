@@ -328,7 +328,7 @@ class PreseeaIngestor(DatasetIngestor):
         )
 
         # File structure
-        tree = f"preseea/\n"
+        tree = "preseea/\n"
         tree += f"  *.mp3 ({structure['mp3_count']} files)\n"
         tree += f"  *.txt ({structure['txt_count']} transcripts)\n"
         tree += f"\nCities found ({len(structure['cities_found'])}):\n"

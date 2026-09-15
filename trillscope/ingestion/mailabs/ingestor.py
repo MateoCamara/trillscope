@@ -1,7 +1,7 @@
 """Main M-AILABS corpus ingestor for Latin American Spanish variants."""
 
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional
 from collections import defaultdict
 import logging
 import csv

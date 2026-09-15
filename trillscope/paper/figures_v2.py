@@ -1,10 +1,11 @@
-"""Regenerate the v2 IberSpeech figures into paper/iberspeech2026/figures/.
+"""Generate the paper figures into outputs/figures/.
 
 Produces:
   fig1_spectrogram.png  - example 2-closure trill with detector closure marks
-  fig2_context.png      - closure count & cycle rate by context (median + 95% CI)
+  fig2_context.png      - closure count & closure rate by context (median + 95% CI)
   fig3_effect_sizes.png - effect-size heatmap (measures x predictors)
   fig4_robustness.png   - filter sweep (p_sex, eps_ctx) + detector sweep pass grid
+  fig_summary.png       - graphical abstract (closures vs envelope peaks)
 
 Run from repo root:
     python -m trillscope.paper.figures_v2
@@ -27,7 +28,7 @@ from trillscope.statistics.inferential import bootstrap_median_ci
 
 logging.getLogger().setLevel(logging.WARNING)
 
-FIG = Path("paper/iberspeech2026/figures")
+FIG = Path("outputs/figures")
 CORPORA = ["dimex100", "albayzin", "glissando", "preseea", "tedx", "heroico"]
 CTX_ORDER = ["intervocalic_rr", "after_nls", "word_initial"]
 CTX_LABEL = {"intervocalic_rr": "Interv.\nrr", "after_nls": "Post-\n/nls/", "word_initial": "Word-\ninit."}

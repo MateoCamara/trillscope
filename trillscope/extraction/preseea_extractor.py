@@ -6,8 +6,8 @@ import logging
 import re
 
 from .base import TrillCandidate, ExtractionResult
-from .context_classifier import classify_phoneme_context, classify_r_context, is_trill_context
-from .mfa_utils import MFARunner, MFAPhoneme, MFAWord
+from .context_classifier import classify_phoneme_context
+from .mfa_utils import MFARunner, MFAPhoneme
 from ..ingestion.preseea.xml_parser import PreseeaXMLParser
 
 logger = logging.getLogger(__name__)

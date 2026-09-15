@@ -208,7 +208,7 @@ Output files:
 
             total = sum(len(r.records) for r in all_results)
             logger.info(f"\n{'='*60}")
-            logger.info(f"  UNIFIED METADATA")
+            logger.info("  UNIFIED METADATA")
             logger.info(f"{'='*60}")
             logger.info(f"  Total records: {total:,}")
             logger.info(f"  Output: {unified_path}")

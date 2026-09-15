@@ -5,7 +5,7 @@ from typing import List, Optional, Tuple
 import logging
 
 from .base import TrillCandidate, ExtractionResult
-from .context_classifier import classify_phoneme_context, classify_r_context, is_trill_context
+from .context_classifier import classify_phoneme_context, is_trill_context
 from ..ingestion.albayzin.seo_parser import SEOParser, SEORecord, PhonemeLabel
 
 logger = logging.getLogger(__name__)

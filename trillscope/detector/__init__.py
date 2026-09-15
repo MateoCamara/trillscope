@@ -9,8 +9,11 @@ from trillscope.detector.period_detector import (
     PeriodResult,
     detect_n_closures_by_period,
 )
+from trillscope.detector.config import DEFAULT_CONFIG, load_config
 
 __all__ = [
+    "DEFAULT_CONFIG",
+    "load_config",
     "DetectorConfig",
     "Closure",
     "DetectionResult",

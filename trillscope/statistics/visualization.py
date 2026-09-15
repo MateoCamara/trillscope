@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 
 logger = logging.getLogger(__name__)

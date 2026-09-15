@@ -2,7 +2,7 @@
 
 from pathlib import Path
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Tuple
+from typing import List, Optional, Tuple
 import re
 import logging
 

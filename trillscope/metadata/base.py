@@ -1,7 +1,7 @@
 """Base classes and data types for metadata normalization (Block C)."""
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime

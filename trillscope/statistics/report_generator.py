@@ -317,7 +317,7 @@ def _format_conclusions(result: AnalysisResult) -> str:
     significant_tests = result.get_significant_tests()
     total_tests = len(result.test_results)
 
-    lines.append(f"### Summary")
+    lines.append("### Summary")
     lines.append("")
     lines.append(f"Out of {total_tests} statistical tests, {len(significant_tests)} showed significant effects after correction for multiple comparisons.")
     lines.append("")

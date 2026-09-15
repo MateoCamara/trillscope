@@ -25,7 +25,7 @@ from pathlib import Path
 import pandas as pd
 
 from .build_tokens import CORPUS_CANONICAL
-from .cli import DEFAULT_CONFIG, load_config
+from .detector import DEFAULT_CONFIG, load_config
 from .cross_validate import run_dataset as run_xval
 from .measure_v2 import run_dataset as run_detect
 from .quality import apply_quality_filter

@@ -232,7 +232,6 @@ def _load_mp3_segment(
         logger.warning("pydub not installed, trying soundfile")
         # Try soundfile as fallback (works for some MP3s)
         try:
-            import soundfile as sf
             return _load_wav_segment(path, start_ms, end_ms, target_sr, context_ms)
         except Exception:
             return None, 0

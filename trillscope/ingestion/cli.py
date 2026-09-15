@@ -34,7 +34,7 @@ def ingest_albayzin(dataset_root: Path, output_dir: Path) -> None:
     ingestor = AlbayzinIngestor(dataset_root, output_dir)
     result = ingestor.ingest()
 
-    logger.info(f"ALBAYZIN ingestion complete:")
+    logger.info("ALBAYZIN ingestion complete:")
     logger.info(f"  - Utterances: {result.statistics['total_utterances']:,}")
     logger.info(f"  - Speakers: {result.statistics['total_speakers']:,}")
     logger.info(f"  - Duration: {result.statistics['total_duration_hours']:.1f} hours")
@@ -48,7 +48,7 @@ def ingest_preseea(dataset_root: Path, output_dir: Path) -> None:
     ingestor = PreseeaIngestor(dataset_root, output_dir)
     result = ingestor.ingest()
 
-    logger.info(f"PRESEEA ingestion complete:")
+    logger.info("PRESEEA ingestion complete:")
     logger.info(f"  - Utterances: {result.statistics['total_utterances']:,}")
     logger.info(f"  - Speakers: {result.statistics['total_speakers']:,}")
     logger.info(f"  - Duration: {result.statistics['total_duration_hours']:.1f} hours")
@@ -63,7 +63,7 @@ def ingest_dimex100(dataset_root: Path, output_dir: Path,
     ingestor = DIMEx100Ingestor(dataset_root, output_dir, metadata_csv)
     result = ingestor.ingest()
 
-    logger.info(f"DIMEx100 ingestion complete:")
+    logger.info("DIMEx100 ingestion complete:")
     logger.info(f"  - Utterances: {result.statistics['total_utterances']:,}")
     logger.info(f"  - Speakers: {result.statistics['total_speakers']:,}")
     logger.info(f"  - Duration: {result.statistics['total_duration_hours']:.1f} hours")
@@ -78,7 +78,7 @@ def ingest_glissando(dataset_root: Path, output_dir: Path) -> None:
     ingestor = GlissandoIngestor(dataset_root, output_dir)
     result = ingestor.ingest()
 
-    logger.info(f"Glissando-sp ingestion complete:")
+    logger.info("Glissando-sp ingestion complete:")
     logger.info(f"  - Utterances: {result.statistics['total_utterances']:,}")
     logger.info(f"  - Speakers: {result.statistics['total_speakers']:,}")
     logger.info(f"  - Duration: {result.statistics['total_duration_hours']:.1f} hours")
@@ -93,7 +93,7 @@ def ingest_mailabs(dataset_root: Path, output_dir: Path) -> None:
     ingestor = MAILABSIngestor(dataset_root, output_dir)
     result = ingestor.ingest()
 
-    logger.info(f"M-AILABS ingestion complete:")
+    logger.info("M-AILABS ingestion complete:")
     logger.info(f"  - Utterances: {result.statistics['total_utterances']:,}")
     logger.info(f"  - Speakers: {result.statistics['total_speakers']:,}")
     logger.info(f"  - Duration: {result.statistics['total_duration_hours']:.1f} hours")
@@ -113,7 +113,7 @@ def ingest_tedx(dataset_root: Path, output_dir: Path) -> None:
     ingestor = TEDxIngestor(dataset_root, output_dir)
     result = ingestor.ingest()
 
-    logger.info(f"TEDx Spanish ingestion complete:")
+    logger.info("TEDx Spanish ingestion complete:")
     logger.info(f"  - Utterances: {result.statistics['total_utterances']:,}")
     logger.info(f"  - Speakers: {result.statistics['total_speakers']:,}")
     logger.info(f"  - Duration: {result.statistics['total_duration_hours']:.1f} hours")
@@ -133,7 +133,7 @@ def ingest_heroico(dataset_root: Path, output_dir: Path) -> None:
     ingestor = HeroicoIngestor(dataset_root, output_dir)
     result = ingestor.ingest()
 
-    logger.info(f"Heroico ingestion complete:")
+    logger.info("Heroico ingestion complete:")
     logger.info(f"  - Utterances: {result.statistics['total_utterances']:,}")
     logger.info(f"  - Speakers: {result.statistics['total_speakers']:,}")
     logger.info(f"  - Duration: {result.statistics['total_duration_hours']:.1f} hours")
@@ -159,7 +159,7 @@ def ingest_commonvoice(dataset_root: Path, output_dir: Path,
     ingestor = CommonVoiceIngestor(dataset_root, output_dir, sample_size=sample_size)
     result = ingestor.ingest()
 
-    logger.info(f"Common Voice ingestion complete:")
+    logger.info("Common Voice ingestion complete:")
     logger.info(f"  - Utterances: {result.statistics['total_utterances']:,}")
     logger.info(f"  - Speakers: {result.statistics['total_speakers']:,}")
     logger.info(f"  - Duration: {result.statistics['total_duration_hours']:.1f} hours")

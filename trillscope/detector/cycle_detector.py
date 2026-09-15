@@ -1,11 +1,11 @@
-"""Detector v2: closure-based trill cycle counter.
+"""Closure-based trill detector.
 
 Counts occlusion–release events rather than envelope peaks. A closure is a
-sustained drop in both the low band (0–500 Hz, voicing) and the mid band
-(500–3500 Hz, turbulence/burst), followed shortly after by a mid-band burst
-(the release). This anchors the count to the same object that the phonetic
-literature counts manually on spectrograms (Quilis 1993, Blecua 2001,
-Henriksen & Willis 2010, Bradley & Willis 2012, Henriksen et al. 2023).
+local energy minimum of the band-limited envelope (by default the 500–3500 Hz
+band, which carries turbulence and release bursts) that is followed shortly
+by a mid-band release burst. This anchors the count to the same object that
+the phonetic literature counts manually on spectrograms (Quilis 1993, Blecua
+2001, Henriksen & Willis 2010, Bradley & Willis 2012, Henriksen et al. 2023).
 """
 
 from __future__ import annotations
@@ -18,7 +18,12 @@ from scipy import signal
 
 @dataclass(frozen=True)
 class DetectorConfig:
-    """Parameters of detector v2. Physical-scale constants come first."""
+    """Detector parameters. Physical-scale constants come first.
+
+    The defaults are conservative. The parameters used for the published
+    analysis live in ``trillscope/config/detector.yaml``; load them with
+    :func:`trillscope.detector.load_config`.
+    """
 
     # Frame analysis
     frame_ms: float = 2.5
@@ -68,7 +73,7 @@ class Closure:
 
 @dataclass(frozen=True)
 class DetectionResult:
-    """Result of detector v2 on a single token."""
+    """Detection result for a single token."""
 
     closures: list[Closure]
     confidence: float            # in [0, 1]
@@ -82,12 +87,6 @@ class DetectionResult:
 # ---------------------------------------------------------------------------
 # Building blocks
 # ---------------------------------------------------------------------------
-
-
-def _butter_bandpass(low: float, high: float, sr: int, order: int = 4) -> tuple[np.ndarray, np.ndarray]:
-    nyq = 0.5 * sr
-    b, a = signal.butter(order, [low / nyq, high / nyq], btype="band")
-    return b, a
 
 
 def _rms_envelope(x: np.ndarray, sr: int, frame_ms: float) -> tuple[np.ndarray, np.ndarray]:
@@ -117,7 +116,7 @@ def _bandpass(x: np.ndarray, sr: int, band: tuple[float, float]) -> np.ndarray:
     # clamp to nyquist
     high = min(high, nyq * 0.99)
     if low <= 0:
-        # use highpass-only when low <= 0
+        # low <= 0: low-pass filter only
         b, a = signal.butter(4, high / nyq, btype="low")
     else:
         b, a = signal.butter(4, [low / nyq, high / nyq], btype="band")
@@ -343,7 +342,6 @@ def detect_closures(
     env_lin = 10.0 ** (env_db / 20.0)
     global_max = float(np.max(env_lin)) if len(env_lin) else 1e-12
     for i, (ci, ri) in enumerate(refined):
-        depth = float(env_db[ci]) - float(_to_db(np.array([env_lin[ci]]), ref=global_max)[0])
         # depth_db = drop below global max
         depth_db = float(-_to_db(np.array([env_lin[ci]]), ref=global_max)[0])
         iv_next = float("nan")

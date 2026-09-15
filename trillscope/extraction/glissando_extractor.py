@@ -5,9 +5,8 @@ from typing import List, Optional
 import logging
 
 from .base import TrillCandidate, ExtractionResult
-from .context_classifier import classify_phoneme_context
 from ..ingestion.glissando.textgrid_parser import (
-    TextGridParser, TextGridData, Interval
+    TextGridParser, Interval
 )
 
 logger = logging.getLogger(__name__)

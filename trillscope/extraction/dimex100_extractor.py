@@ -6,7 +6,7 @@ import logging
 
 from .base import TrillCandidate, ExtractionResult
 from .context_classifier import classify_phoneme_context
-from ..ingestion.dimex100.phn_parser import DIMExPHNParser, PhonemeSegment
+from ..ingestion.dimex100.phn_parser import DIMExPHNParser
 
 logger = logging.getLogger(__name__)
 

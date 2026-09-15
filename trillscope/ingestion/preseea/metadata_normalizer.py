@@ -1,6 +1,6 @@
 """Metadata normalization for PRESEEA corpus."""
 
-from typing import Optional, Dict
+from typing import Dict
 import re
 
 

@@ -508,11 +508,11 @@ class CommonVoiceIngestor(DatasetIngestor):
         )
 
         # File structure
-        tree = f"cv-corpus (Common Voice Spanish)\n"
+        tree = "cv-corpus (Common Voice Spanish)\n"
         tree += f"  Total validated: {structure['total_validated']:,}\n"
         tree += f"  With demographics: {structure['with_demographics']:,}\n"
         tree += f"  Sampled: {len(utterances):,}\n"
-        tree += f"  clips/ (MP3 audio files)\n"
+        tree += "  clips/ (MP3 audio files)\n"
         tree += f"  validated.tsv ({transcript_info['total_lines']:,} lines)\n"
 
         file_counts = {

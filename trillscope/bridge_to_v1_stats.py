@@ -1,19 +1,19 @@
-"""Bridge v2 closure counts into v1's acoustic_measurements schema.
+"""Export closure counts in the acoustic_measurements schema.
 
 `trillscope.statistics` reads `acoustic_measurements_<dataset>.parquet` and uses
-`num_cycles`, `voicing_pct`, `mean_f0_hz`, `mean_hnr_db`, etc. To re-run the
-statistical analysis with v2 closure counts without modifying v1 code, we
-produce a parallel set of parquets under `outputs/tables_v2/` that look like
-v1 but have:
+`num_cycles`, `voicing_pct`, `mean_f0_hz`, `mean_hnr_db`, etc. To run the
+statistical analysis on closure counts, this module writes a parallel set of
+parquets under `outputs/tables_v2/` with the same schema, where:
 
-  num_cycles        <- n_closures_v2 (the closure event count)
-  cycle_rate_hz     <- recomputed from num_cycles / duration_ms
-  cycle_regularity  <- 1 - period_cv_v2   (interval CV inverted; matches v1 sign)
+  num_cycles        <- n_closures_v2 (number of closures)
+  cycle_rate_hz     <- num_cycles / duration
+  cycle_regularity  <- period_cv_v2 (CV of inter-closure intervals; 0 = regular)
   cycle_confidence  <- confidence_v2
 
 All other acoustic features (voicing_pct, mean_f0_hz, mean_hnr_db, intensity)
-are inherited from v1's acoustic_measurements parquet, since v2 only replaced
-the cycle detector and not the rest of the measurement stage.
+are taken from the envelope-peak measurement tables
+(`outputs/tables/acoustic_measurements_<dataset>.parquet`); only the cycle
+count is replaced.
 
 Run:
     python -m trillscope.bridge_to_v1_stats
@@ -83,9 +83,7 @@ def bridge_dataset(
         "cycle_rate_hz": np.where(
             duration_ms > 0, 1000.0 * n_cycles / duration_ms, 0.0
         ),
-        "cycle_regularity": (
-            1.0 - merged["period_cv_v2"].fillna(0.0).clip(lower=0.0, upper=1.0)
-        ),
+        "cycle_regularity": merged["period_cv_v2"],
         "cycle_confidence": merged["confidence_v2"],
         "status": np.where(merged["status_v2"] == "ok", "success", "failed"),
         "context_label": merged["context_label"],

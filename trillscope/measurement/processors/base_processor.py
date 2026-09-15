@@ -2,16 +2,15 @@
 
 import logging
 from pathlib import Path
-from typing import Optional, Dict, Any
-from abc import ABC, abstractmethod
+from typing import Optional
+from abc import ABC
 
 import pandas as pd
-import numpy as np
 
 from ..base import (
     AcousticMetrics, MeasurementConfig, MeasurementResult, MeasurementStatus
 )
-from ..utils.audio_loader import load_audio_segment, load_full_audio
+from ..utils.audio_loader import load_audio_segment
 from ..utils.cycle_detector import detect_trill_cycles, compute_cycle_rate
 from ..utils.voicing_analyzer import analyze_voicing
 from ..utils.intensity_analyzer import analyze_intensity

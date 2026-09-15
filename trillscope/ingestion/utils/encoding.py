@@ -2,7 +2,6 @@
 
 from pathlib import Path
 from typing import Tuple, Optional, List
-import codecs
 import logging
 
 import chardet

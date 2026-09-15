@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import List, Optional, Dict, Tuple
+from typing import List, Optional
 import pandas as pd
 from tqdm import tqdm
 
@@ -304,7 +304,6 @@ def extract_mfa_dataset(
 
 if __name__ == '__main__':
     import argparse
-    import sys
 
     logging.basicConfig(
         level=logging.INFO,

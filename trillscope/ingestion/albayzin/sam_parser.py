@@ -3,7 +3,6 @@
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Optional
-import struct
 
 
 @dataclass

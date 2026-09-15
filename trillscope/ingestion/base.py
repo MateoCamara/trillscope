@@ -7,8 +7,6 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime
 
 import pandas as pd
-import pyarrow as pa
-import pyarrow.parquet as pq
 
 
 @dataclass

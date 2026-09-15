@@ -5,7 +5,7 @@ import shutil
 import tempfile
 import logging
 from pathlib import Path
-from typing import List, Optional, Dict, Tuple
+from typing import List, Optional, Tuple
 from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)

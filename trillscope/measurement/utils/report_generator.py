@@ -1,7 +1,6 @@
 """Report generator for acoustic measurement results."""
 
 from pathlib import Path
-from typing import Dict, Any
 import logging
 
 from ..base import MeasurementResult, MeasurementStatus
@@ -191,7 +190,7 @@ class MeasurementReportGenerator:
             mean_f0 = sum(f0_values) / len(f0_values)
             min_f0 = min(f0_values)
             max_f0 = max(f0_values)
-            lines.append(f"### F0 Statistics\n")
+            lines.append("### F0 Statistics\n")
             lines.append(f"- **Mean F0**: {mean_f0:.1f} Hz")
             lines.append(f"- **Range**: {min_f0:.1f} - {max_f0:.1f} Hz")
             lines.append(f"- **Tokens with F0**: {len(f0_values):,}")

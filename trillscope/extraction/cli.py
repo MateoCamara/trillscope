@@ -50,7 +50,7 @@ def extract_dimex100(dataset_root: Path, output_dir: Path) -> None:
     result = extractor.extract_all()
 
     # Log summary
-    logger.info(f"DIMEx100 extraction complete:")
+    logger.info("DIMEx100 extraction complete:")
     logger.info(f"  - Candidates: {result.statistics.get('total_candidates', 0):,}")
     logger.info(f"  - Speakers: {result.statistics.get('unique_speakers', 0):,}")
     logger.info(f"  - Utterances: {result.statistics.get('unique_utterances', 0):,}")
@@ -74,7 +74,7 @@ def extract_albayzin(dataset_root: Path, output_dir: Path) -> None:
     result = extractor.extract_all()
 
     # Log summary
-    logger.info(f"ALBAYZIN extraction complete:")
+    logger.info("ALBAYZIN extraction complete:")
     logger.info(f"  - Candidates: {result.statistics.get('total_candidates', 0):,}")
     logger.info(f"  - Speakers: {result.statistics.get('unique_speakers', 0):,}")
     logger.info(f"  - Utterances: {result.statistics.get('unique_utterances', 0):,}")
@@ -98,7 +98,7 @@ def extract_glissando(dataset_root: Path, output_dir: Path) -> None:
     result = extractor.extract_all()
 
     # Log summary
-    logger.info(f"Glissando-sp extraction complete:")
+    logger.info("Glissando-sp extraction complete:")
     logger.info(f"  - Candidates: {result.statistics.get('total_candidates', 0):,}")
     logger.info(f"  - Speakers: {result.statistics.get('unique_speakers', 0):,}")
     logger.info(f"  - Utterances: {result.statistics.get('unique_utterances', 0):,}")
@@ -146,7 +146,7 @@ def extract_preseea(dataset_root: Path, output_dir: Path,
         result = extractor.extract_without_mfa()
 
     # Log summary
-    logger.info(f"PRESEEA extraction complete:")
+    logger.info("PRESEEA extraction complete:")
     logger.info(f"  - Candidates: {result.statistics.get('total_candidates', 0):,}")
     logger.info(f"  - Speakers: {result.statistics.get('unique_speakers', 0):,}")
     logger.info(f"  - Utterances: {result.statistics.get('unique_utterances', 0):,}")

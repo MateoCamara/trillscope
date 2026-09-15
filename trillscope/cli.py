@@ -14,10 +14,8 @@ import argparse
 import logging
 from pathlib import Path
 
-import yaml
-
 from .cross_validate import run_dataset as run_xval
-from .detector import DetectorConfig
+from .detector import DEFAULT_CONFIG, load_config
 from .measure_v2 import run_dataset as run_detect
 
 
@@ -31,23 +29,6 @@ DATASETS = [
     "commonvoice",
     "mailabs",
 ]
-
-
-DEFAULT_CONFIG = Path(__file__).resolve().parent / "config" / "detector.yaml"
-
-
-def load_config(path: Path) -> DetectorConfig:
-    """Load detector parameters from YAML. Falls back to defaults if missing."""
-    if not path.exists():
-        logging.warning("config file %s not found; using defaults", path)
-        return DetectorConfig()
-    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    kwargs: dict = {}
-    for key, value in data.items():
-        if isinstance(value, list):
-            value = tuple(value)
-        kwargs[key] = value
-    return DetectorConfig(**kwargs)
 
 
 def _resolve_targets(name: str) -> list[str]:
@@ -129,7 +110,7 @@ def _cmd_validate(args: argparse.Namespace) -> None:
     from .validate import run_dataset as run_validate
     for ds in _resolve_targets(args.dataset):
         closures = args.candidates_dir / f"closures_v2_{ds}.parquet"
-        xval = args.candidates_dir / f"cross_validation_{ds}.parquet"
+        xval = (args.xval_dir or args.candidates_dir) / f"cross_validation_{ds}.parquet"
         if not closures.exists() or not xval.exists():
             logging.warning("skip %s: closures or cross-validation missing", ds)
             continue
@@ -177,6 +158,9 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("dataset", choices=["all", *DATASETS])
     p.add_argument(common_paths["candidates_dir"][0], type=Path,
                    default=common_paths["candidates_dir"][1])
+    p.add_argument("--xval-dir", type=Path, default=None,
+                   help="Directory with cross_validation_<dataset>.parquet "
+                        "(default: --candidates-dir)")
     p.add_argument("--reports-dir", type=Path, default=Path("reports/validation"),
                    help="Where to write markdown reports + histograms")
     p.add_argument("-v", "--verbose", action="store_true")

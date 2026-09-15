@@ -1,7 +1,6 @@
 """Context classifier for trill /r/ occurrences."""
 
-import re
-from typing import Optional, Tuple
+from typing import Optional
 
 
 # Spanish vowels (including accented)

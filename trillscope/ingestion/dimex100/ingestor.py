@@ -427,13 +427,13 @@ class DIMEx100Ingestor(DatasetIngestor):
         )
 
         # File structure
-        tree = f"CorpusDimex100/\n"
+        tree = "CorpusDimex100/\n"
         tree += f"  diccionarios/ ({len(structure['dictionaries'])} .dic files)\n"
         tree += f"  s001-s{len(structure['speakers']):03d}/ ({len(structure['speakers'])} speakers)\n"
-        tree += f"    audio_editado/comunes/, individuales/\n"
-        tree += f"    texto/comunes/, individuales/\n"
-        tree += f"    T22/, T44/, T54/ (phoneme alignments)\n"
-        tree += f"    tp/ (word alignments)\n"
+        tree += "    audio_editado/comunes/, individuales/\n"
+        tree += "    texto/comunes/, individuales/\n"
+        tree += "    T22/, T44/, T54/ (phoneme alignments)\n"
+        tree += "    tp/ (word alignments)\n"
 
         file_counts = {
             '.wav': structure['total_wav_files'],

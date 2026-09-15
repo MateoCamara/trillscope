@@ -382,9 +382,9 @@ class TEDxIngestor(DatasetIngestor):
         # File structure
         tree = "tedx_spanish_corpus/\n"
         tree += f"  speech/ ({structure['total_wav_files']} WAV files)\n"
-        tree += f"  files/\n"
+        tree += "  files/\n"
         tree += f"    TEDx_Spanish.transcription ({transcript_info['total_lines']} lines)\n"
-        tree += f"    Speaker_Info.xls\n"
+        tree += "    Speaker_Info.xls\n"
 
         file_counts = {
             '.wav': structure['total_wav_files'],

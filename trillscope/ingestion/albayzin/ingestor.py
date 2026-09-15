@@ -471,7 +471,7 @@ class AlbayzinIngestor(DatasetIngestor):
         )
 
         # File structure
-        tree = f"ALBAYZIN/corpora/\n"
+        tree = "ALBAYZIN/corpora/\n"
         for sub, info in structure['subcorpora'].items():
             tree += f"  {sub}/\n"
             tree += f"    CF/SUB_APRE/ ({info['ses_count']} SES files)\n"

@@ -9,7 +9,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from trillscope.detector import DetectorConfig, detect_closures
+from trillscope.detector import detect_closures
 from trillscope.synthetic import TrillSpec, synthesize_trill
 
 

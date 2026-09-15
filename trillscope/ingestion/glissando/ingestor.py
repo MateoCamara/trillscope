@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional
 from collections import defaultdict
 import logging
-import re
 
 from tqdm import tqdm
 
@@ -14,8 +13,7 @@ from ..utils.id_generator import IDGenerator
 from ..utils.report_writer import AuditReportWriter
 from .textgrid_parser import TextGridParser, find_trill_phonemes
 from .metadata import (
-    get_all_speakers, get_speaker, extract_speaker_from_path,
-    SPEAKER_LOOKUP, GlissandoSpeaker
+    get_all_speakers, extract_speaker_from_path
 )
 
 logger = logging.getLogger(__name__)

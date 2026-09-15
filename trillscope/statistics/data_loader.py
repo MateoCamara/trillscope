@@ -372,7 +372,6 @@ def _merge_dimex100_with_inferred_sex(
     WARNING: Do not use F0-inferred sex to analyze F0 differences - this is circular!
     Only use for non-F0 measures (cycles, duration, voicing, HNR, etc.)
     """
-    import numpy as np
 
     measurements = measurements.copy()
 
@@ -397,7 +396,7 @@ def _merge_dimex100_with_inferred_sex(
     # Log inference statistics
     sex_counts = speaker_sex.value_counts()
     total_speakers = len(speaker_sex)
-    logger.info(f"DIMEx100 sex inference from F0:")
+    logger.info("DIMEx100 sex inference from F0:")
     logger.info(f"  - Total speakers: {total_speakers}")
     logger.info(f"  - Inferred Female (F0 > 165 Hz): {sex_counts.get('F', 0)}")
     logger.info(f"  - Inferred Male (F0 < 145 Hz): {sex_counts.get('M', 0)}")

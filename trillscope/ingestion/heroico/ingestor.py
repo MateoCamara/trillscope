@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional
 from collections import defaultdict
 import logging
-import re
 
 from tqdm import tqdm
 
@@ -750,12 +749,12 @@ class HeroicoIngestor(DatasetIngestor):
 
         # File structure
         tree = "LDC2006S37/ (Heroico)\n"
-        tree += f"  data/speech/heroico/\n"
+        tree += "  data/speech/heroico/\n"
         tree += f"    Recordings_Spanish/ ({structure['heroico']['recordings_speakers']} speakers, "
         tree += f"{structure['heroico']['recordings_files']} files)\n"
         tree += f"    Answers_Spanish/ ({structure['heroico']['answers_speakers']} speakers, "
         tree += f"{structure['heroico']['answers_files']} files)\n"
-        tree += f"  data/speech/usma/\n"
+        tree += "  data/speech/usma/\n"
         tree += f"    Native: {structure['usma']['native_speakers']} speakers\n"
         tree += f"    Non-native: {structure['usma']['nonnative_speakers']} speakers\n"
         tree += f"    Total files: {structure['usma']['total_files']}\n"
