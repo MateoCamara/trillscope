@@ -3,7 +3,7 @@
 **Closure-based detection and multi-corpus acoustic analysis of the Spanish trill /r/.**
 
 This repository contains the code behind the paper *Spanish Trill Production: A
-Multi-Corpus Acoustic Study* (see [Citation](#citation)). It provides:
+Multi-Corpus Acoustic Study* (IberSpeech 2026; see [Citation](#citation)). It provides:
 
 - a **closure detector** that counts the lingual closures of a trill (band-limited
   energy minima followed by a verified release burst) instead of envelope peaks;
