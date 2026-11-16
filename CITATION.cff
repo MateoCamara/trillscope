@@ -11,7 +11,7 @@ authors:
     affiliation: "Universidad Politécnica de Madrid"
 license: MIT
 repository-code: "https://github.com/MateoCamara/trillscope"
-url: "https://mateocamara.github.io/trillscope/"
+url: "https://mateocamara.com/trillscope/"
 preferred-citation:
   type: article
   title: "Counting Closures in Spanish Trills: A Multi-Corpus Acoustic Study"

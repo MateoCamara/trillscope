@@ -6,7 +6,7 @@ This repository contains the code behind the paper *Counting Closures in Spanish
 Trills: A Multi-Corpus Acoustic Study* (IberSpeech 2026,
 [arXiv:2609.17424](https://arxiv.org/abs/2609.17424); see [Citation](#citation)).
 Audio examples and extended results are on the
-[supplementary website](https://mateocamara.github.io/trillscope/). The repository provides:
+[supplementary website](https://mateocamara.com/trillscope/). The repository provides:
 
 - a **closure detector** that counts the lingual closures of a trill (band-limited
   energy minima followed by a verified release burst) instead of envelope peaks;
@@ -183,8 +183,7 @@ python -m trillscope.paper.build_supplement            # -> supplement/
 
 The supplementary website only embeds synthetic audio and Common Voice (CC0) clips; the
 other corpora appear as derived visualisations only. A built copy lives in
-[`docs/`](docs/) and is served by GitHub Pages at
-<https://mateocamara.github.io/trillscope/>.
+[`docs/`](docs/) and is hosted at <https://mateocamara.com/trillscope/>.
 
 ## Repository layout
 
