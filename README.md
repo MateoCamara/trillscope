@@ -2,8 +2,11 @@
 
 **Closure-based detection and multi-corpus acoustic analysis of the Spanish trill /r/.**
 
-This repository contains the code behind the paper *Spanish Trill Production: A
-Multi-Corpus Acoustic Study* (IberSpeech 2026; see [Citation](#citation)). It provides:
+This repository contains the code behind the paper *Counting Closures in Spanish
+Trills: A Multi-Corpus Acoustic Study* (IberSpeech 2026,
+[arXiv:2609.17424](https://arxiv.org/abs/2609.17424); see [Citation](#citation)).
+Audio examples and extended results are on the
+[supplementary website](https://mateocamara.github.io/trillscope/). The repository provides:
 
 - a **closure detector** that counts the lingual closures of a trill (band-limited
   energy minima followed by a verified release burst) instead of envelope peaks;
@@ -179,7 +182,9 @@ python -m trillscope.paper.build_supplement            # -> supplement/
 ```
 
 The supplementary website only embeds synthetic audio and Common Voice (CC0) clips; the
-other corpora appear as derived visualisations only.
+other corpora appear as derived visualisations only. A built copy lives in
+[`docs/`](docs/) and is served by GitHub Pages at
+<https://mateocamara.github.io/trillscope/>.
 
 ## Repository layout
 
@@ -208,18 +213,23 @@ pytest
 
 ## Citation
 
-If you use this code, please cite:
+If you use this code, please cite the paper. Until the IberSpeech 2026 proceedings
+are out, cite the arXiv preprint:
 
 ```bibtex
-@misc{trillscope2026,
-  title         = {Spanish Trill Production: A Multi-Corpus Acoustic Study},
-  author        = {TODO},
-  year          = {TODO},
-  eprint        = {TODO},
+@misc{camara2026trills,
+  title         = {Counting Closures in Spanish Trills: A Multi-Corpus Acoustic Study},
+  author        = {C{\'a}mara, Mateo and Alcala-Durand, Maria F.},
+  year          = {2026},
+  eprint        = {2609.17424},
   archivePrefix = {arXiv},
-  primaryClass  = {TODO}
+  primaryClass  = {eess.AS},
+  url           = {https://arxiv.org/abs/2609.17424}
 }
 ```
+
+GitHub's "Cite this repository" button reads the same reference from
+[`CITATION.cff`](CITATION.cff).
 
 ## License
 

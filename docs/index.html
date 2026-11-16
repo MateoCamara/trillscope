@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Counting Closures in Spanish Trills · supplementary material</title>
+<meta name="description" content="Supplementary material for Counting Closures in Spanish Trills: A Multi-Corpus Acoustic Study (IberSpeech 2026).">
+<style>
+:root{color-scheme:dark;--bg:#0f1115;--card:#181b22;--fg:#e8eaed;--mut:#9aa3ad;--acc:#4ea1ff;--line:#2a2f3a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);
+font:16px/1.6 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+header{padding:48px 20px;text-align:center;border-bottom:1px solid var(--line);
+background:linear-gradient(180deg,#141821,#0f1115)}
+header h1{margin:0 0 8px;font-size:28px}header p{color:var(--mut);max-width:760px;margin:6px auto}
+.badge{display:inline-block;background:#22303f;color:var(--acc);border:1px solid #2c4356;
+padding:3px 10px;border-radius:20px;font-size:12px;margin-top:10px}
+main{max-width:980px;margin:0 auto;padding:24px 18px 80px}
+section{background:var(--card);border:1px solid var(--line);border-radius:12px;
+padding:22px 24px;margin:22px 0}
+h2{margin-top:0;font-size:21px;border-bottom:1px solid var(--line);padding-bottom:8px}
+h3{font-size:16px;color:var(--fg);margin:18px 0 6px}
+p,li{color:#d6dade}.mut{color:var(--mut)}.small{font-size:13px}
+img{max-width:100%;border-radius:8px;display:block;margin:8px 0;background:#000}
+audio{width:100%;margin:6px 0;filter:saturate(.7)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.card{background:#11141b;border:1px solid var(--line);border-radius:10px;padding:12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:720px){.two{grid-template-columns:1fr}}
+table{border-collapse:collapse;width:100%;font-size:14px;margin:8px 0}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:right}
+th:first-child,td:first-child{text-align:left}thead th{background:#1d2230}
+.key{background:#11141b;border-left:3px solid var(--acc);padding:10px 14px;border-radius:6px;margin:10px 0}
+.warn{border-left-color:#e0a800}
+code{background:#11141b;border:1px solid var(--line);padding:1px 5px;border-radius:4px;font-size:13px}
+footer{color:var(--mut);text-align:center;padding:30px;font-size:13px;border-top:1px solid var(--line)}
+a{color:var(--acc)}
+
+.links{margin-top:12px;font-size:14px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Counting Closures in Spanish Trills: A Multi-Corpus Acoustic Study</h1>
+  <p>Supplementary material — listen to trill examples and see the
+  closure-vs-envelope-peak distinction, the f₀ mechanism, the phonotactic-context
+  effect, and per-corpus validation.</p>
+  <div class="badge">IberSpeech 2026 · supplementary site</div>
+  <p class="links"><a href="https://arxiv.org/abs/2609.17424">Paper (arXiv:2609.17424)</a> · <a href="https://github.com/MateoCamara/trillscope">Code (trillscope)</a></p>
+</header>
+<main>
+
+<figure style="margin:0 0 22px;text-align:center">
+<img loading="lazy" class="" src="assets/img/fig_summary.png" alt="">
+<figcaption class="mut small">Graphical abstract — on the same trill, the mid-band
+envelope has two closures but ~5 envelope peaks; the envelope-peak count invents a
+male advantage (+1.79, p&lt;10⁻⁹) that vanishes when closures are counted (+0.22, n.s.).</figcaption>
+</figure>
+
+<section id="overview"><h2>1 · What this is</h2>
+<p>We measure the Spanish trill /r/ by counting <b>closures</b> (the occlusion
+event, a mid-band energy minimum with a verified release) directly, instead of
+counting peaks of a rectified amplitude envelope.
+Across <b>3,560 tokens</b> from <b>356 speakers</b> in <b>six corpora</b>, the trill
+has a median of <b>two closures</b> and an inter-closure period near <b>36&nbsp;ms</b>.
+Phonotactic context is the only factor with a robust, medium effect; speaker sex
+shows none once closures are counted directly.</p>
+<div class="key warn small"><b>Audio note.</b> Only redistributable audio is playable
+here: <b>synthetic</b> trills and <b>Common Voice</b> (CC0). The six analysed corpora
+are licence-restricted, so for them we show only derived visualisations
+(spectrograms, contact sheets), never the audio.</div></section>
+
+<section id="canonical"><h2>2 · Hear the unit: 1–3 closures</h2>
+<p>Synthetic trills with a known number of closures. The blue lines mark the
+closures the detector verifies (occlusion + a following release burst).</p>
+<div class="grid"><div class="card"><b>1 closure(s)</b><span class="mut small"> · v2 detected 1</span><img loading="lazy" class="" src="assets/img/synth_1closure.png" alt=""><audio controls preload="none" src="assets/audio/synth_1closure.wav"></audio></div><div class="card"><b>2 closure(s)</b><span class="mut small"> · v2 detected 2</span><img loading="lazy" class="" src="assets/img/synth_2closure.png" alt=""><audio controls preload="none" src="assets/audio/synth_2closure.wav"></audio></div><div class="card"><b>3 closure(s)</b><span class="mut small"> · v2 detected 3</span><img loading="lazy" class="" src="assets/img/synth_3closure.png" alt=""><audio controls preload="none" src="assets/audio/synth_3closure.wav"></audio></div></div></section>
+
+<section id="mechanism"><h2>3 · Closures vs envelope peaks — the sex artifact</h2>
+<p>An <b>envelope-peak</b> counter marks a maximum for both the occlusion and its
+release, so it roughly <b>doubles</b> the count. On the same synthetic token the
+closure detector finds <b>2</b> closures (blue), while an
+envelope-peak counter marks <b>5</b> peaks (red dotted).</p>
+<img loading="lazy" class="" src="assets/img/mech_demo.png" alt=""><audio controls preload="none" src="assets/audio/mech_demo.wav"></audio>
+<h3>Why this creates a spurious sex effect</h3>
+<p>The size of that over-count depends on f₀ and harmonic density — and therefore on
+speaker sex. On the real tokens, the per-token over-count <b>rises as f₀ falls</b>
+(Spearman ρ = -0.37, n = 3429). The envelope-peak
+count is f₀-dependent; the closure count is not.</p>
+<div class="two">
+  <div><img loading="lazy" class="" src="assets/img/excess_vs_f0.png" alt=""></div>
+  <div><table><thead><tr><th>measure</th><th>F</th><th>M</th><th>M−F</th></tr></thead>
+  <tbody>
+   <tr><td>envelope-peak count</td><td>4.33</td><td>6.12</td><td>+1.79*</td></tr>
+   <tr><td>closure count (v2)</td><td>1.80</td><td>2.02</td><td>+0.22 n.s.</td></tr>
+  </tbody></table>
+  <p class="small mut">Speakers with independent (metadata) sex labels, DIMEx100
+  excluded. *Mann–Whitney p&lt;10⁻⁹, rank-biserial r = 0.53. The over-count absorbs
+  +1.58 of the +1.79 gap, so the apparent sex effect is a counting artifact.</p></div>
+</div>
+<h3>Hear a low- and a high-pitched trill</h3>
+<p class="mut small">Identical 2-closure structure, different f₀ — the closure count
+should be the same for both.</p>
+<div class="grid"><div class="card"><b>low-pitch trill</b><span class="mut small"> · f₀ ≈ 110 Hz · identical 2-closure structure</span><audio controls preload="none" src="assets/audio/mech_lowF0.wav"></audio></div><div class="card"><b>high-pitch trill</b><span class="mut small"> · f₀ ≈ 220 Hz · identical 2-closure structure</span><audio controls preload="none" src="assets/audio/mech_highF0.wav"></audio></div></div></section>
+
+<section id="context"><h2>4 · Phonotactic context (the one robust effect)</h2>
+<p>Intervocalic <i>rr</i> shows the <b>fewest</b> closures; onset trills (word-initial,
+post-/n,l,s/) show more. The independent autocorrelation cross-detector reproduces
+this ranking exactly and counts intervocalic trills <i>higher</i>
+(2.07 vs 1.81 closures), so the effect is not a closure-detection artifact.</p>
+<img loading="lazy" class="" src="assets/img/fig3_effect_sizes.png" alt="">
+<p class="mut small">Kruskal–Wallis ε² for every predictor on closure count, closure
+rate and duration, on one scale. Context is the only predictor reaching a medium
+effect; sex is negligible. Non-significant cells (after Bonferroni) are hatched.</p>
+<h3>Context examples (Common Voice, CC0)</h3>
+<div class="grid"><div class="card"><b>“cigarro”</b><span class="mut small"> · intervocalic_rr · v2 closures 3</span><img loading="lazy" class="" src="assets/img/cv_intervocalic_rr_1.png" alt=""><audio controls preload="none" src="assets/audio/cv_intervocalic_rr_1.wav"></audio></div><div class="card"><b>“revista”</b><span class="mut small"> · intervocalic_rr · v2 closures 1</span><img loading="lazy" class="" src="assets/img/cv_intervocalic_rr_2.png" alt=""><audio controls preload="none" src="assets/audio/cv_intervocalic_rr_2.wav"></audio></div><div class="card"><b>“regularidad”</b><span class="mut small"> · word_initial · v2 closures 2</span><img loading="lazy" class="" src="assets/img/cv_word_initial_1.png" alt=""><audio controls preload="none" src="assets/audio/cv_word_initial_1.wav"></audio></div><div class="card"><b>“rómulo”</b><span class="mut small"> · word_initial · v2 closures 2</span><img loading="lazy" class="" src="assets/img/cv_word_initial_2.png" alt=""><audio controls preload="none" src="assets/audio/cv_word_initial_2.wav"></audio></div><div class="card"><b>“richmond”</b><span class="mut small"> · after_nls · v2 closures 1</span><img loading="lazy" class="" src="assets/img/cv_after_nls_1.png" alt=""><audio controls preload="none" src="assets/audio/cv_after_nls_1.wav"></audio></div><div class="card"><b>“regimiento”</b><span class="mut small"> · after_nls · v2 closures 3</span><img loading="lazy" class="" src="assets/img/cv_after_nls_2.png" alt=""><audio controls preload="none" src="assets/audio/cv_after_nls_2.wav"></audio></div></div></section>
+
+<section id="validation"><h2>5 · Per-corpus validation</h2>
+<p>All six corpora pass literature-anchored validation. Each contact sheet tiles
+example tokens; a <span style="color:#3a3">green</span> border means the two
+independent detectors agree within ±1 closure, <span style="color:#c33">red</span>
+means they disagree.</p>
+<table><thead><tr><th>Corpus</th><th>Tokens</th><th>Median n</th>
+<th>Period (ms)</th><th>Agree.</th></tr></thead><tbody><tr><td>TEDx</td><td>1,481</td><td>2.0</td><td>35.0</td><td>95.6%</td></tr><tr><td>Heroico</td><td>1,151</td><td>2.0</td><td>36.2</td><td>95.2%</td></tr><tr><td>Glissando</td><td>762</td><td>2.0</td><td>37.5</td><td>91.2%</td></tr><tr><td>DIMEx100</td><td>81</td><td>1.0</td><td>30.0</td><td>92.6%</td></tr><tr><td>ALBAYZIN</td><td>46</td><td>2.0</td><td>30.0</td><td>67.4%</td></tr><tr><td>PRESEEA</td><td>39</td><td>1.0</td><td>35.0</td><td>79.5%</td></tr></tbody></table>
+<div class="grid"><div class="card"><b>TEDX</b><div class="mut small">green border = the two detectors agree (±1 closure)</div><img loading="lazy" class="" src="assets/img/tedx_contact.jpg" alt=""></div><div class="card"><b>HEROICO</b><div class="mut small">green border = the two detectors agree (±1 closure)</div><img loading="lazy" class="" src="assets/img/heroico_contact.jpg" alt=""></div><div class="card"><b>GLISSANDO</b><div class="mut small">green border = the two detectors agree (±1 closure)</div><img loading="lazy" class="" src="assets/img/glissando_contact.jpg" alt=""></div><div class="card"><b>DIMEX100</b><div class="mut small">green border = the two detectors agree (±1 closure)</div><img loading="lazy" class="" src="assets/img/dimex100_contact.jpg" alt=""></div><div class="card"><b>ALBAYZIN</b><div class="mut small">green border = the two detectors agree (±1 closure)</div><img loading="lazy" class="" src="assets/img/albayzin_contact.jpg" alt=""></div><div class="card"><b>PRESEEA</b><div class="mut small">green border = the two detectors agree (±1 closure)</div><img loading="lazy" class="" src="assets/img/preseea_contact.jpg" alt=""></div></div></section>
+
+<section id="corpora"><h2>6 · Corpora &amp; sample sizes</h2>
+<table><thead><tr><th>Dataset</th><th>Speakers</th><th>Tokens</th>
+<th>Region</th><th>Style</th></tr></thead><tbody><tr><td>TEDx</td><td>138</td><td>1,481</td><td>Pan-Hispanic</td><td>spontaneous</td></tr><tr><td>Heroico</td><td>112</td><td>1,151</td><td>Mex/Sp/Ar</td><td>read</td></tr><tr><td>Glissando</td><td>27</td><td>762</td><td>Spain</td><td>read+spont.</td></tr><tr><td>DIMEx100</td><td>40</td><td>81</td><td>Mexico</td><td>read</td></tr><tr><td>ALBAYZIN</td><td>30</td><td>46</td><td>Spain</td><td>read</td></tr><tr><td>PRESEEA</td><td>9</td><td>39</td><td>Spain</td><td>spontaneous</td></tr></tbody></table>
+<p class="mut small">Post-filter token (speaker) counts per cell (the balance behind the
+context analysis; word-initial is the smallest cell).</p>
+<h3>Tokens (speakers) per context × corpus</h3>
+<table><thead><tr><th>corpus</th><th>intervocalic rr</th><th>after nls</th><th>word initial</th><th>all</th></tr></thead><tbody><tr><td>tedx</td><td>1241 (137)</td><td>210 (90)</td><td>30 (19)</td><td>1481 (138)</td></tr><tr><td>heroico</td><td>1034 (111)</td><td>109 (57)</td><td>8 (8)</td><td>1151 (112)</td></tr><tr><td>glissando</td><td>605 (27)</td><td>141 (16)</td><td>16 (11)</td><td>762 (27)</td></tr><tr><td>dimex100</td><td>80 (39)</td><td>1 (1)</td><td>0 (0)</td><td>81 (40)</td></tr><tr><td>albayzin</td><td>25 (18)</td><td>2 (2)</td><td>19 (14)</td><td>46 (30)</td></tr><tr><td>preseea</td><td>35 (9)</td><td>4 (2)</td><td>0 (0)</td><td>39 (9)</td></tr><tr><td><b>Total</b></td><td><b>3020 (341)</b></td><td><b>467 (168)</b></td><td><b>73 (52)</b></td><td><b>3560 (356)</b></td></tr></tbody></table>
+<h3>Tokens (speakers) per sex × context</h3>
+<table><thead><tr><th>sex</th><th>intervocalic rr</th><th>after nls</th><th>word initial</th></tr></thead><tbody><tr><td>F</td><td>621 (68)</td><td>133 (37)</td><td>27 (20)</td></tr><tr><td>M</td><td>1362 (136)</td><td>236 (80)</td><td>38 (24)</td></tr></tbody></table>
+<h3>Quality-filter retention (candidates → retained)</h3>
+<p class="mut small">The filter keeps 21% of candidates overall but very little of
+the read/lab-heavy material (DIMEx100 1.3%): the analysed set is clean, periodic
+trill realisations, not all expected /r/ contexts.</p>
+<table><thead><tr><th>corpus</th><th>candidates</th><th>retained</th><th>%</th></tr></thead><tbody><tr><td>TEDx</td><td>4144</td><td>1481</td><td>35.7%</td></tr><tr><td>Heroico</td><td>2573</td><td>1151</td><td>44.7%</td></tr><tr><td>Glissando</td><td>2226</td><td>762</td><td>34.2%</td></tr><tr><td>DIMEx100</td><td>6285</td><td>81</td><td>1.3%</td></tr><tr><td>ALBAYZIN</td><td>346</td><td>46</td><td>13.3%</td></tr><tr><td>PRESEEA</td><td>1262</td><td>39</td><td>3.1%</td></tr><tr><td><b><b>Total</b></b></td><td><b>16836</b></td><td><b>3560</b></td><td><b>21.1%</b></td></tr></tbody></table>
+<table><thead><tr><th>context</th><th>candidates</th><th>retained</th><th>%</th></tr></thead><tbody><tr><td>intervocalic rr</td><td>13641</td><td>3020</td><td>22.1%</td></tr><tr><td>after nls</td><td>2374</td><td>467</td><td>19.7%</td></tr><tr><td>word initial</td><td>821</td><td>73</td><td>8.9%</td></tr></tbody></table>
+<p class="mut small">Retention also depends on how the phone boundaries were obtained:
+the native DIMEx100 <code>.phn</code> boundaries are about twice as narrow as MFA
+boundaries (median candidate duration 37 vs ~70 ms), so most DIMEx100 candidates fall
+under the 50 ms duration floor (and the 60 ms floor below which the periodicity score
+is defined as 0); voicing is not the cause (98% of them pass the voicing rule).</p>
+<table><thead><tr><th>alignment source</th><th>candidates</th><th>retained</th><th>%</th></tr></thead><tbody><tr><td>native .phn (DIMEx100)</td><td>6285</td><td>81</td><td>1.3%</td></tr><tr><td>native SEO (ALBAYZIN)</td><td>346</td><td>46</td><td>13.3%</td></tr><tr><td>native TextGrid (Glissando)</td><td>2226</td><td>762</td><td>34.2%</td></tr><tr><td>MFA forced alignment (TEDx, Heroico, PRESEEA)</td><td>7979</td><td>2671</td><td>33.5%</td></tr></tbody></table>
+<table><thead><tr><th>speech style</th><th>candidates</th><th>retained</th><th>%</th></tr></thead><tbody><tr><td>read</td><td>10787</td><td>1826</td><td>16.9%</td></tr><tr><td>spontaneous</td><td>5548</td><td>1566</td><td>28.2%</td></tr><tr><td>task-oriented</td><td>501</td><td>168</td><td>33.5%</td></tr></tbody></table>
+<h3>Quality-filter retention by speaker sex</h3>
+<p class="mut small">Sex&nbsp;&times;&nbsp;inclusion is not associated (&chi;&sup2; p&nbsp;=&nbsp;0.14; speaker-level retention p&nbsp;=&nbsp;0.36), and male candidates are not less voiced than female ones (speaker-level p&nbsp;=&nbsp;0.64). The filter does not drop male tokens preferentially, so the sex null is not an artifact of it.</p>
+<table><thead><tr><th>sex</th><th>candidates</th><th>retained</th><th>retention %</th><th>voicing (all)</th><th>voicing (dropped)</th></tr></thead><tbody><tr><td>F</td><td>2779</td><td>781</td><td>28.1%</td><td>86.2</td><td>82.4</td></tr><tr><td>M</td><td>5507</td><td>1636</td><td>29.7%</td><td>83.5</td><td>78.1</td></tr></tbody></table></section>
+
+<section id="hier"><h2>7 · Covariate-adjusted models and leave-one-corpus-out</h2>
+<p class="mut small">Gaussian linear mixed models (REML) with a random speaker intercept; fixed effects: context (reference intervocalic <i>rr</i>), corpus (reference TEDx, dummies not shown), token duration (centred, per 10 ms) and speech style (reference spontaneous; corpus-constant except Glissando, so identified only within it). Sex (reference F) is added on the subset with a documented label (DIMEx100 excluded). The closure count is under-dispersed (var/mean &asymp; 0.34), so a Poisson model would be misspecified.</p>
+<table><thead><tr><th>term</th><th>estimate</th><th>95% CI</th><th>p</th></tr></thead><tbody><tr><td colspan="4"><b>closure count, all tokens</b> &mdash; n = 3560 tokens, 356 speakers, ICC = 0.13</td></tr><tr><td>context[after_nls]</td><td>+0.221</td><td>[+0.161, +0.281]</td><td>5.5e-13</td></tr><tr><td>context[word_initial]</td><td>+0.227</td><td>[+0.075, +0.379]</td><td>0.0035</td></tr><tr><td>style[read]</td><td>+0.094</td><td>[-0.056, +0.245]</td><td>0.22</td></tr><tr><td>dur_per10ms</td><td>+0.227</td><td>[+0.217, +0.237]</td><td>0</td></tr><tr><td colspan="4"><b>closure rate (Hz), all tokens</b> &mdash; n = 3560 tokens, 356 speakers, ICC = 0.13</td></tr><tr><td>context[after_nls]</td><td>+2.753</td><td>[+1.997, +3.510]</td><td>9.7e-13</td></tr><tr><td>context[word_initial]</td><td>+2.979</td><td>[+1.058, +4.899]</td><td>0.0024</td></tr><tr><td>style[read]</td><td>+0.952</td><td>[-0.959, +2.864]</td><td>0.33</td></tr><tr><td>dur_per10ms</td><td>-0.206</td><td>[-0.330, -0.081]</td><td>0.0012</td></tr><tr><td colspan="4"><b>closure count, documented-sex subset</b> &mdash; n = 2417 tokens, 217 speakers, ICC = 0.10</td></tr><tr><td>context[after_nls]</td><td>+0.228</td><td>[+0.159, +0.298]</td><td>1.2e-10</td></tr><tr><td>context[word_initial]</td><td>+0.227</td><td>[+0.060, +0.393]</td><td>0.0075</td></tr><tr><td>style[read]</td><td>+0.093</td><td>[-0.056, +0.242]</td><td>0.22</td></tr><tr><td>sex[M]</td><td>+0.037</td><td>[-0.056, +0.129]</td><td>0.44</td></tr><tr><td>dur_per10ms</td><td>+0.230</td><td>[+0.219, +0.242]</td><td>0</td></tr><tr><td colspan="4"><b>closure rate (Hz), documented-sex subset</b> &mdash; n = 2417 tokens, 217 speakers, ICC = 0.12</td></tr><tr><td>context[after_nls]</td><td>+2.745</td><td>[+1.874, +3.616]</td><td>6.5e-10</td></tr><tr><td>context[word_initial]</td><td>+2.865</td><td>[+0.775, +4.955]</td><td>0.0072</td></tr><tr><td>style[read]</td><td>+0.945</td><td>[-0.970, +2.861]</td><td>0.33</td></tr><tr><td>sex[M]</td><td>+0.619</td><td>[-0.607, +1.845]</td><td>0.32</td></tr><tr><td>dur_per10ms</td><td>-0.199</td><td>[-0.343, -0.055]</td><td>0.0068</td></tr></tbody></table>
+<h3>Leave-one-corpus-out (context effect)</h3>
+<p class="mut small">Speaker &times; context aggregation and Kruskal&ndash;Wallis &epsilon;&sup2;, as in the paper, with one corpus removed at a time. Intervocalic <i>rr</i> stays the context with the fewest closures and the slowest rate in 6/6 hold-outs; &epsilon;&sup2; spans 0.04&ndash;0.13 (count) and 0.08&ndash;0.16 (rate): the direction is invariant, the magnitude small-to-medium.</p>
+<table><thead><tr><th>held-out corpus</th><th>tokens / speakers</th><th>mean closures<br>ivc / nls / w-init</th><th>&epsilon;&sup2; count</th><th>&epsilon;&sup2; rate</th><th>intervocalic lowest?</th></tr></thead><tbody><tr><td>none (all corpora)</td><td>3560 / 356</td><td>1.81 / 2.21 / 2.30</td><td>0.083 (medium)</td><td>0.128 (medium)</td><td>yes</td></tr><tr><td>dimex100</td><td>3479 / 316</td><td>1.91 / 2.22 / 2.30</td><td>0.059 (small)</td><td>0.112 (medium)</td><td>yes</td></tr><tr><td>albayzin</td><td>3514 / 326</td><td>1.83 / 2.23 / 2.56</td><td>0.101 (medium)</td><td>0.146 (large)</td><td>yes</td></tr><tr><td>glissando</td><td>2798 / 329</td><td>1.80 / 2.22 / 2.23</td><td>0.080 (medium)</td><td>0.161 (large)</td><td>yes</td></tr><tr><td>preseea</td><td>3521 / 347</td><td>1.83 / 2.24 / 2.30</td><td>0.086 (medium)</td><td>0.134 (medium)</td><td>yes</td></tr><tr><td>tedx</td><td>2079 / 218</td><td>1.73 / 2.05 / 2.05</td><td>0.045 (small)</td><td>0.076 (medium)</td><td>yes</td></tr><tr><td>heroico</td><td>2409 / 244</td><td>1.72 / 2.26 / 2.33</td><td>0.130 (medium)</td><td>0.127 (medium)</td><td>yes</td></tr></tbody></table></section>
+
+<section id="sweeps"><h2>8 · Parameter sweeps</h2>
+<h3>Quality-filter sweep (periodicity × voicing; duration fixed at [50, 200] ms)</h3>
+<p class="mut small">Speaker-level Mann–Whitney for sex (p, rank-biserial r) and
+speaker × context Kruskal–Wallis for context (p, ε²); uncorrected p-values. The
+production point is periodicity ≥ 0.40, voicing ≥ 80%.</p>
+<table><thead><tr><th>periodicity &ge;</th><th>voicing &ge; (%)</th><th>tokens</th><th>median closures</th><th>&epsilon;&sup2; context</th><th>p context</th><th>p sex</th><th>r sex</th></tr></thead><tbody><tr><td>0.30</td><td>70</td><td>4355</td><td>2</td><td>0.082</td><td>2e-12</td><td>0.07</td><td>0.15</td></tr><tr><td>0.30</td><td>80</td><td>4078</td><td>2</td><td>0.068</td><td>7e-10</td><td>0.08</td><td>0.14</td></tr><tr><td>0.30</td><td>90</td><td>3617</td><td>2</td><td>0.066</td><td>4e-09</td><td>0.07</td><td>0.15</td></tr><tr><td>0.35</td><td>70</td><td>4082</td><td>2</td><td>0.088</td><td>7e-13</td><td>0.16</td><td>0.11</td></tr><tr><td>0.35</td><td>80</td><td>3824</td><td>2</td><td>0.078</td><td>7e-11</td><td>0.18</td><td>0.11</td></tr><tr><td>0.35</td><td>90</td><td>3400</td><td>2</td><td>0.076</td><td>5e-10</td><td>0.13</td><td>0.13</td></tr><tr><td>0.40</td><td>70</td><td>3794</td><td>2</td><td>0.092</td><td>6e-13</td><td>0.20</td><td>0.10</td></tr><tr><td>0.40</td><td>80</td><td>3561</td><td>2</td><td>0.083</td><td>3e-11</td><td>0.20</td><td>0.10</td></tr><tr><td>0.40</td><td>90</td><td>3172</td><td>2</td><td>0.077</td><td>8e-10</td><td>0.19</td><td>0.11</td></tr><tr><td>0.45</td><td>70</td><td>3497</td><td>2</td><td>0.078</td><td>8e-11</td><td>0.27</td><td>0.09</td></tr><tr><td>0.45</td><td>80</td><td>3292</td><td>2</td><td>0.077</td><td>3e-10</td><td>0.26</td><td>0.09</td></tr><tr><td>0.45</td><td>90</td><td>2947</td><td>2</td><td>0.074</td><td>2e-09</td><td>0.21</td><td>0.11</td></tr><tr><td>0.50</td><td>70</td><td>3158</td><td>2</td><td>0.061</td><td>2e-08</td><td>0.60</td><td>0.04</td></tr><tr><td>0.50</td><td>80</td><td>2978</td><td>2</td><td>0.064</td><td>2e-08</td><td>0.65</td><td>0.04</td></tr><tr><td>0.50</td><td>90</td><td>2669</td><td>2</td><td>0.062</td><td>9e-08</td><td>0.47</td><td>0.06</td></tr></tbody></table>
+<h3>Detector sweep (closure prominence × closure threshold)</h3>
+<p class="mut small">For each cell, how many of the six corpora land within the
+literature-anchored ranges (median 1–3 closures, median period 30–50 ms,
+cross-detector agreement ≥ 65%). The production point is 5 dB, 0.40.</p>
+<table><thead><tr><th>prominence (dB)</th><th>threshold</th><th>corpora within literature ranges</th><th>outside</th></tr></thead><tbody><tr><td>3</td><td>0.30</td><td>5 / 6</td><td>albayzin</td></tr><tr><td>3</td><td>0.40</td><td>6 / 6</td><td>&mdash;</td></tr><tr><td>3</td><td>0.50</td><td>6 / 6</td><td>&mdash;</td></tr><tr><td>5</td><td>0.30</td><td>5 / 6</td><td>albayzin</td></tr><tr><td>5</td><td>0.40</td><td>6 / 6</td><td>&mdash;</td></tr><tr><td>5</td><td>0.50</td><td>6 / 6</td><td>&mdash;</td></tr><tr><td>8</td><td>0.30</td><td>5 / 6</td><td>albayzin</td></tr><tr><td>8</td><td>0.40</td><td>6 / 6</td><td>&mdash;</td></tr><tr><td>8</td><td>0.50</td><td>6 / 6</td><td>&mdash;</td></tr></tbody></table></section>
+
+<section id="repro"><h2>9 · Reproducibility</h2>
+<p>The complete pipeline — the closure detector, the fixed quality filter
+(duration ∈ [50, 200] ms, voicing ≥ 80 %, envelope-periodicity ≥ 0.40), the
+independent period cross-detector, the statistical scripts and the test suite —
+is public at <a href="https://github.com/MateoCamara/trillscope">https://github.com/MateoCamara/trillscope</a>. It is deterministic and
+reproducible from the candidate token tables plus the source audio.</p>
+<p>Implementation details asked for by the reviewers:</p>
+<ul>
+<li><b>Periodicity refinement</b> (dropping a closure whose two adjacent intervals both
+deviate by more than 2 SD from the token's median interval) runs only when a token has
+at least three closures; with one or two closures it is a no-op.</li>
+<li><b>Release verification</b> takes the <i>maximum</i> of the mid-band envelope in the
+3–25 ms window after a closure candidate; if it does not reach 40% of the local maximum
+the candidate is discarded. One release per closure.</li>
+<li><b>Segment boundaries.</b> Detection runs on the aligned segment padded by ±20 ms so
+that a release just past the boundary can be verified, but only closures whose time
+falls inside the original boundaries are kept.</li>
+<li><b>Periodicity score</b> is undefined (set to 0) for regions shorter than 60 ms, so the
+effective duration floor of the quality filter is 60 ms.</li>
+<li><b>Thresholds</b> were set on synthetic trills and a first pass over the corpora, then
+frozen; the sweeps above show the conclusions do not depend on them. The synthetic suite
+(16 tests) checks exact-count recovery, jitter tolerance, vowel rejection and the absence
+of double counting.</li>
+</ul></section>
+
+</main>
+<footer>Supplementary material · IberSpeech 2026 · synthetic &amp; CC0 audio only</footer>
+</body>
+</html>

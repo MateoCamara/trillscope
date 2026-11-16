@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the paper below."
+title: "trillscope: closure-based detection and multi-corpus acoustic analysis of the Spanish trill /r/"
+authors:
+  - family-names: "Cámara"
+    given-names: "Mateo"
+    orcid: "https://orcid.org/0000-0002-1055-6315"
+    affiliation: "Universidad Politécnica de Madrid"
+  - family-names: "Alcala-Durand"
+    given-names: "Maria F."
+    affiliation: "Universidad Politécnica de Madrid"
+license: MIT
+repository-code: "https://github.com/MateoCamara/trillscope"
+url: "https://mateocamara.github.io/trillscope/"
+preferred-citation:
+  type: article
+  title: "Counting Closures in Spanish Trills: A Multi-Corpus Acoustic Study"
+  authors:
+    - family-names: "Cámara"
+      given-names: "Mateo"
+    - family-names: "Alcala-Durand"
+      given-names: "Maria F."
+  year: 2026
+  journal: "arXiv preprint"
+  identifiers:
+    - type: other
+      value: "arXiv:2609.17424"
+  url: "https://arxiv.org/abs/2609.17424"
